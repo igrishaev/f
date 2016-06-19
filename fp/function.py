@@ -6,9 +6,11 @@ __all__ = (
     'pcall_decorator',
     'achain',
     'ichain',
-    'thread',
+    'thread_first',
+    'thread_last',
     'comp',
     'every_pred',
+    'transduce',
 )
 
 
@@ -49,22 +51,40 @@ def ichain(obj, *items):
     return reduce(get_item, items, obj)
 
 
-def thread(value, *funcs):
+def thread_first(value, *forms):
 
-    def reducer(value, func):
-        return func(value)
+    def reducer(value, form):
 
-    return reduce(reducer, funcs, value)
+        if isinstance(form, (tuple, list)):
+            func, args = form[0], form[1:]
+        else:
+            func, args = form, ()
+
+        all_args = (value, ) + tuple(args)
+        return func(*all_args)
+
+    return reduce(reducer, forms, value)
 
 
-# def thread2(value):
-#     pass
+def thread_last(value, *forms):
+
+    def reducer(value, form):
+
+        if isinstance(form, (tuple, list)):
+            func, args = form[0], form[1:]
+        else:
+            func, args = form, ()
+
+        all_args = tuple(args) + (value, )
+        return func(*all_args)
+
+    return reduce(reducer, forms, value)
 
 
 def comp(*funcs):
 
     def composed(value):
-        return thread(value, *funcs)
+        return thread_first(value, *funcs)
 
     names = (func.__name__ for func in funcs)
     composed.__name__ = "composed(%s)" % ", ".join(names)
@@ -74,42 +94,40 @@ def comp(*funcs):
 
 def every_pred(*preds):
 
-    # todo name
     def composed(val):
         for pred in preds:
             if not pred(val):
                 return False
         return True
 
+    names = (pred.__name__ for pred in preds)
+    composed.__name__ = "predicate(%s)" % ", ".join(names)
+
     return composed
 
 
-def nth(n, coll):
-    try:
-        coll[n]
-    except:
-        None
+def transduce(mfunc, rfunc, coll, init):
+
+    def reducer(result, item):
+        return rfunc(result, mfunc(item))
+
+    return reduce(reducer, coll, init)
 
 
-def first(coll):
-    return nth(0, coll)
+# def nth(n, coll):
+#     try:
+#         coll[n]
+#     except:
+#         None
 
 
-def second(coll):
-    return nth(1, coll)
+# def first(coll):
+#     return nth(0, coll)
 
 
-def third(coll):
-    return nth(2, coll)
+# def second(coll):
+#     return nth(1, coll)
 
 
-def headtail():
-    pass
-
-
-# def transducer(mfunc, rfunc):
-#     pass
-
-
-# def push():
-#     pass
+# def third(coll):
+#     return nth(2, coll)

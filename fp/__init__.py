@@ -1,5 +1,5 @@
 
-from .function import *
-from .collection import *
-from .cons import *
-from .monad import *
+from .function import *  # noqa
+from .collection import *  # noqa
+from .cons import *  # noqa
+from .monad import *  # noqa
