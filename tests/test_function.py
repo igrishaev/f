@@ -3,6 +3,7 @@ import pytest
 
 import fp
 
+
 #
 # helpers
 #
@@ -19,9 +20,6 @@ def json_data():
         ]
     }
 
-
-# def obj_data():
-#     class
 
 def double(a):
     return a * 2
@@ -128,9 +126,9 @@ def test_comp_name():
 
 def test_every_pred():
 
-    pred1 = lambda x: x > 0
-    pred2 = lambda x: x % 2 == 0
-    pred3 = lambda x: x != 666
+    pred1 = fp.p_gt(0)
+    pred2 = fp.p_even
+    pred3 = fp.p_not_eq(666)
 
     every = fp.every_pred(pred1, pred2, pred3)
 
@@ -140,7 +138,8 @@ def test_every_pred():
 
 def test_every_pred_lazy():
 
-    pred1 = lambda x: False
+    def pred1(x):
+        return False
 
     def pred2(x):
         raise ValueError("some error")

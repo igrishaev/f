@@ -5,6 +5,8 @@ from functools import partial, wraps
 #
 # Binary
 #
+
+
 def _binary(func, b):
 
     @wraps(func)
@@ -30,6 +32,8 @@ p_or = partial(_binary, (lambda a, b: a or b))
 #
 # Unary
 #
+
+
 def _unary(func):
 
     @wraps(func)
@@ -62,3 +66,6 @@ p_array = _unary(_inst(list, tuple))
 p_coll = _unary(_inst(list, tuple, dict, set))
 p_truth = _unary(lambda x: bool(x) is True)
 p_none = _unary(lambda x: x is None)
+p_not_none = _unary(lambda x: x is not None)
+p_even = _unary(lambda x: x % 2 == 0)
+p_odd = _unary(lambda x: x % 2 != 0)

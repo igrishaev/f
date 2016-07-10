@@ -11,11 +11,6 @@ __all__ = (
 )
 
 
-# class Immutable(object):
-
-#     pass
-
-
 class Seq(object):
 
     def join(self, sep=""):
@@ -24,20 +19,12 @@ class Seq(object):
     def reversed(self):
         return self.cls(reversed(self))
 
-    @property
-    def super(self):
-        return super(Seq, self)
-
-    @property
-    def cls(self):
-        return self.__class__
-
     def foreach(self, func, *args, **kwargs):
         for item in self:
             func(item, *args, **kwargs)
 
     def map(self, fn, *args, **kwargs):
-        # import ipdb; ipdb.set_trace()
+
         def process(item):
             return fn(item, *args, **kwargs)
 
@@ -49,25 +36,26 @@ class Seq(object):
             return pred(item, *args, **kwargs)
 
         return self.cls(filter(criteria, self))
-        # return self.Class(item for item in self
-        #                   if pred(item, *args, **kwargs))
 
-    def apply(self, fn, *args, **kwargs):
-        # todo
-        return fn(*self)
-
-    def reduce(self, acc, fn, *args, **kwargs):
+    def reduce(self, fn, init, *args, **kwargs):
 
         def reducer(res, item):
             return fn(res, item, *args, **kwargs)
 
-        return reduce(reducer, self, acc)
+        return reduce(reducer, self, init)
+
+    def apply(self, fn):
+        return fn(*self)
+
+    def sum(self):
+        return sum(self)
 
     def __add__(self, other):
         cls = self.cls
         adder = self.super.__add__
         return cls(adder(cls(other)))
 
+    # todo
     def __unicode__(self):
         to_unicode = self.super.__unicode__
         return u"%s%s" % (self.cls.__name__, to_unicode())
@@ -75,6 +63,18 @@ class Seq(object):
     def __str__(self):
         to_str = self.super.__str__
         return "%s%s" % (self.cls.__name__, to_str())
+
+    def group(self, n=2):
+        gen = (self[i: i+n] for i in xrange(0, len(self), n))
+        return self.cls(gen)
+
+    @property
+    def super(self):
+        return super(Seq, self)
+
+    @property
+    def cls(self):
+        return self.__class__
 
     def Tuple(self):
         return Tuple(self)
