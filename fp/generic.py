@@ -13,7 +13,7 @@ class Generic(object):
 
         def wrapper(func):
             self.__funcs[preds] = func
-            # return self todo
+            return self
 
         return wrapper
 
