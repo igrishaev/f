@@ -92,14 +92,6 @@ class Either(object):
         return Right(val)
 
 
-# class LeftRightBase(object):
-
-#     __slots__ = ('__val', )
-
-#     def __init__(self, val):
-#         self.__val = val
-
-
 class Left(object):
 
     __slots__ = ('__val', )
@@ -129,11 +121,13 @@ class Right(object):
 class Try(object):
 
     def __new__(cls, func, *args, **kwargs):
+
         try:
-            val = func(*args, **kwargs)
-            return Success(val)
+            return Success(func(*args, **kwargs))
+
         except Exception as e:
             return Failture(e)
+
         # except:
         #     # todo
 
@@ -174,6 +168,8 @@ class Failture(object):
 
     def recover(self, exc_class, val_or_func):
 
+        e = self.__val
+
         def is_callable(val):
             return hasattr(val_or_func, '__call__')
 
@@ -184,8 +180,6 @@ class Failture(object):
 
             else:
                 return val_or_func
-
-        e = self.__val
 
         if isinstance(e, exc_class):
             return Success(resolve())

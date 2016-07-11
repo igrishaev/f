@@ -109,3 +109,32 @@ def test_try():
 
     with pytest.raises(ZeroDivisionError):
         m.get()
+
+    def getKey1(x):
+        return fp.Just(123)
+
+    def getKey2(x):
+        return fp.Just(321)
+
+    def getData(x, y):
+        return fp.Just(x + y)
+
+    # getKey1("123") \
+    #     >> (lambda key1: getKey2(key1)) \
+    #     >> (lambda key2: getData(key1, key2)) \
+    #     >> (lambda data: printData(data))
+
+    res = getKey1("123") >> \
+          (lambda key1: getKey2(key1) >> \
+           (lambda key2: getData(key1, key2)))
+    print res
+
+    # for key1 in getKey1("123"):
+    #     for key2 in key1 >> getKey2:
+    #         for data in getData
+
+    # for (
+    #         key1 for key1 in getKey1("123"),
+    #         key2 for key2 in key1 >> getKey2,
+    #         data for getData()
+    # )
