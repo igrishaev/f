@@ -94,7 +94,6 @@ def test_constructor():
     assert [1] == l
 
 
-
 # def test_unicode():
 
 #     u = fp.U(u"test")

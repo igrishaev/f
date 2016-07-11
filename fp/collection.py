@@ -186,7 +186,6 @@ class Set(set):
     __metaclass__ = Meta
 
 
-
 # class Str(Seq, str):
 #     pass
 
