@@ -40,6 +40,12 @@ def div(a, b):
     return a / b
 
 
+class Foo:
+    class Bar:
+        class Baz:
+            secret = 42
+
+
 #
 # tests
 #
@@ -77,8 +83,11 @@ def test_pcall_decorator_name():
 
 
 def test_achain():
-    # todo
-    pass
+    assert 42 == fp.achain(Foo, 'Bar', 'Baz', 'secret')
+
+
+def test_achain_missed():
+    assert fp.achain(Foo, 'Bar', 'Bob', 'secret') is None
 
 
 def test_ichain_ok():
@@ -186,3 +195,25 @@ def test_transduce_comp():
     )
 
     assert (4, 6, 8) == result
+
+
+def test_first():
+    assert 1 == fp.first((1, 2, 3))
+
+
+def test_second():
+    assert 2 == fp.second((1, 2, 3))
+
+
+def test_third():
+    assert 3 == fp.third((1, 2, 3))
+
+
+def test_nth():
+    assert 1 == fp.nth(0, [1, 2, 3])
+    assert None is fp.nth(9, [1, 2, 3])
+
+
+def test_nth_no_index():
+    assert 1 == fp.nth(0, set([1]))
+    assert None is fp.nth(2, set([1]))

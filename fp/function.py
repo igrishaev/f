@@ -1,5 +1,5 @@
 
-from functools import wraps
+from functools import partial, wraps
 
 __all__ = (
     'pcall',
@@ -11,6 +11,10 @@ __all__ = (
     'comp',
     'every_pred',
     'transduce',
+    'nth',
+    'first',
+    'second',
+    'third',
 )
 
 
@@ -114,20 +118,30 @@ def transduce(mfunc, rfunc, coll, init):
     return reduce(reducer, coll, init)
 
 
-# def nth(n, coll):
-#     try:
-#         coll[n]
-#     except:
-#         None
+def nth(n, coll):
+
+    # try to get by index first
+    if hasattr(coll, '__getitem__'):
+        try:
+            return coll[n]
+        except IndexError:
+            return None
+
+    # otherwise, try to iterate manualy
+    elif hasattr(coll, '__iter__'):
+
+        iterator = iter(coll)
+        for x in xrange(n + 1):
+            try:
+                val = next(iterator)
+            except StopIteration:
+                return None
+        return val
+
+    else:
+        return None
 
 
-# def first(coll):
-#     return nth(0, coll)
-
-
-# def second(coll):
-#     return nth(1, coll)
-
-
-# def third(coll):
-#     return nth(2, coll)
+first = partial(nth, 0)
+second = partial(nth, 1)
+third = partial(nth, 2)

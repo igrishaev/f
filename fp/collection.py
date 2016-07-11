@@ -44,6 +44,14 @@ class Seq(object):
 
         return reduce(reducer, self, init)
 
+    def sorted(self):
+        # todo
+        pass
+
+    def distinct(self):
+        # todo
+        pass
+
     def apply(self, fn):
         return fn(*self)
 
