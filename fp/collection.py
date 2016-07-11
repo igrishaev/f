@@ -44,13 +44,39 @@ class Seq(object):
 
         return reduce(reducer, self, init)
 
-    def sorted(self):
-        # todo
-        pass
+    def sorted(self, key=None):
+        return self.cls(sorted(self, key=key))
 
     def distinct(self):
-        # todo
-        pass
+
+        cache_hash = set()
+        cache_list = []
+
+        def is_hashable(x):
+            return getattr(x, '__hash__', None) is not None
+
+        def cache_set(x):
+            if is_hashable(x):
+                cache_hash.add(x)
+            else:
+                cache_list.append(x)
+
+        def cache_has(x):
+            if is_hashable(x):
+                return x in cache_hash
+            else:
+                return x in cache_list
+
+        res = []
+
+        def process(x):
+            if not cache_has(x):
+                cache_set(x)
+                res.append(x)
+
+        self.foreach(process)
+
+        return self.cls(res)
 
     def apply(self, fn):
         return fn(*self)
@@ -58,23 +84,18 @@ class Seq(object):
     def sum(self):
         return sum(self)
 
+    def group(self, n=2):
+        gen = (self[i: i+n] for i in xrange(0, len(self), n))
+        return self.cls(gen)
+
     def __add__(self, other):
         cls = self.cls
         adder = self.super.__add__
         return cls(adder(cls(other)))
 
-    # todo
-    def __unicode__(self):
-        to_unicode = self.super.__unicode__
-        return u"%s%s" % (self.cls.__name__, to_unicode())
-
-    def __str__(self):
-        to_str = self.super.__str__
-        return "%s%s" % (self.cls.__name__, to_str())
-
-    def group(self, n=2):
-        gen = (self[i: i+n] for i in xrange(0, len(self), n))
-        return self.cls(gen)
+    def __repr__(self):
+        to_repr = self.super.__repr__
+        return "%s%s" % (self.cls.__name__, to_repr())
 
     @property
     def super(self):
@@ -102,23 +123,25 @@ class Seq(object):
     D = Dict
 
 
-class List(Seq, list):
+class Foo(object):
+    pass
+
+
+class List(Seq, Foo, list):
 
     class Meta(type):
 
         def __getitem__(self, args):
-            return List(args)
+            if isinstance(args, tuple):
+                return List(args)
+            else:
+                return List((args, ))
 
     __metaclass__ = Meta
 
     def __getslice__(self, *args, **kwargs):
         getslice = super(List, self).__getslice__
         return List(getslice(*args, **kwargs))
-
-    # def __setitem__(self, *args, **kwargs):
-    #     raise Exception()
-    #     print args, kwargs
-    #     0/0
 
 
 class Tuple(Seq, tuple):
@@ -163,16 +186,16 @@ class Set(set):
     __metaclass__ = Meta
 
 
-class Str(Seq, str):
-    pass
+
+# class Str(Seq, str):
+#     pass
 
 
-class Unicode(Seq, unicode):
-    pass
+# class Unicode(Seq, unicode):
+#     pass
 
 
 L = List
 T = Tuple
 S = Set
 D = Dict
-U = Unicode

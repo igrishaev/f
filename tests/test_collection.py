@@ -47,6 +47,7 @@ def test_list():
     assert isinstance(res, fp.L)
 
     assert str(l1) == "List[1, 2, 3]"
+    assert unicode(l1) == u"List[1, 2, 3]"
 
     t1 = l1.T()
     assert t1 == (1, 2, 3)
@@ -63,4 +64,45 @@ def test_list():
     assert d1 == {"a": 1, "b": 2}
     assert isinstance(d1, fp.D)
 
+    res = fp.L[3, 3, 2, 1, 1, 3, 2, 2, 3].distinct()
+    assert [3, 2, 1] == res
+    assert isinstance(res, fp.L)
+
+    res = fp.L[{1: 2}, {1: 2}, {1: 3}].distinct()
+    assert [{1: 2}, {1: 3}] == res
+    assert isinstance(res, fp.L)
+
+    res = fp.L[3, 2, 1, 1, 2, 3].sorted()
+    assert [1, 1, 2, 2, 3, 3] == res
+    assert isinstance(res, fp.L)
+
+    res = fp.L[(3, 1), (2, 2), (1, 3)].sorted(key=(lambda (a, b): a))
+    assert [(1, 3), (2, 2), (3, 1)] == res
+    assert isinstance(res, fp.L)
+
     # todo slice
+
+
+def test_constructor():
+    l = fp.L((1, 2, 3))
+    assert [1, 2, 3] == l
+
+    l = fp.L[1, 2, 3]
+    assert [1, 2, 3] == l
+
+    l = fp.L[1]
+    assert [1] == l
+
+
+
+# def test_unicode():
+
+#     u = fp.U(u"test")
+#     assert u == u"test"
+
+#     # res = u.join('-')
+#     # assert res == u"t-e-s-t"
+#     # assert isinstance(res, fp.Unicode)
+
+#     res = u.map(unicode.upper)
+#     print res
