@@ -161,7 +161,7 @@ def test_set_features():
 
     assert {1, 2, 3} == s
 
-    # assert {(1, 2), 3} == s.group(2)
+    # assert {(1, 2), 3} == s.group(2) # todo
 
 
 def test_dict_features():
@@ -173,10 +173,33 @@ def test_dict_features():
     assert res == dict(a=1, b=2, c=3, d=4, e=5, f=5)
     assert isinstance(res, f.D)
 
+    # todo
+
 
 def test_dict_constructor():
 
-    # d = f.D["name": "Ivan", "sex": "male"]
+    d = f.D["foo": 42]
+    assert dict(foo=42) == d
+
+    d = f.D["name": "Juan", "sex": "male", 1: 42, None: [1, 2, 3]]
+    assert {"name": "Juan", "sex": "male", 1: 42, None: [1, 2, 3]} == d
+    assert isinstance(d, f.D)
+
+    d = f.D["foo": f.D["bar": f.D["baz": 42]]]
+    node = d["foo"]["bar"]
+    assert isinstance(node, f.D)
+    assert 42 == node["baz"]
+
+    assert "Dict{'foo': Dict{'bar': Dict{'baz': 42}}}" == str(d)
+
+
+def test_dict_iter():
+    # todo
+    pass
+
+
+def test_complex():
+    # todo
     pass
 
 
@@ -191,7 +214,6 @@ def test_dict_constructor():
 
 #     res = u.map(unicode.upper)
 #     print res
-
 
 # tests
 

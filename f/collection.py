@@ -183,29 +183,23 @@ class Set(Seq, LTSmixin, set):
 
 class Dict(Seq, dict):
 
-    # class Meta(type):
+    class Meta(type):
 
-    #     def __getitem__(self, foo):
-    #         pass
-    #         # import ipdb; ipdb.set_trace()
-    #         # print foo
-    #         # return Dict((arg.start, arg.stop) for arg in foo)
+        def __getitem__(cls, slices):
 
-    # __metaclass__ = Meta
+            if isinstance(slices, tuple):
+                slice_tuple = slices
+            else:
+                slice_tuple = (slices, )
+
+            keys = (sl.start for sl in slice_tuple)
+            vals = (sl.stop for sl in slice_tuple)
+
+            return cls(zip(keys, vals))
+
+    __metaclass__ = Meta
 
     __iter__ = dict.iteritems
-
-    # def __add__(self, other):
-    #     return 42
-
-    # __add__ = dict.update
-
-    # def __getitem__(self, items):
-    #     getter = super(Dict, self).__getitem__
-    #     if isinstance(items, tuple):
-    #         return map(getter, items)
-    #     else:
-    #         return getter(items)
 
 
 L = List
