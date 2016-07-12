@@ -16,6 +16,7 @@ class Seq(object):
     def join(self, sep=""):
         return sep.join(self)
 
+    # lt todo
     def reversed(self):
         return self.cls(reversed(self))
 
@@ -37,16 +38,18 @@ class Seq(object):
 
         return self.cls(filter(criteria, self))
 
-    def reduce(self, fn, init, *args, **kwargs):
+    def reduce(self, init, fn, *args, **kwargs):
 
         def reducer(res, item):
             return fn(res, item, *args, **kwargs)
 
         return reduce(reducer, self, init)
 
+    # lt todo
     def sorted(self, key=None):
         return self.cls(sorted(self, key=key))
 
+    # lt todo
     def distinct(self):
 
         cache_hash = set()
@@ -78,20 +81,29 @@ class Seq(object):
 
         return self.cls(res)
 
+    # lt todo
     def apply(self, fn):
         return fn(*self)
 
     def sum(self):
         return sum(self)
 
+    # lt
     def group(self, n=2):
         gen = (self[i: i+n] for i in xrange(0, len(self), n))
         return self.cls(gen)
 
     def __add__(self, other):
-        cls = self.cls
-        adder = self.super.__add__
-        return cls(adder(cls(other)))
+
+        def gen():
+
+            for x in self:
+                yield x
+
+            for y in self.cls(other):
+                yield y
+
+        return self.cls(gen())
 
     def __repr__(self):
         to_repr = self.super.__repr__
@@ -123,78 +135,84 @@ class Seq(object):
     D = Dict
 
 
-class Foo(object):
+class LTmixin(object):
+
+    def __getslice__(self, *args, **kwargs):
+        getslice = super(LTmixin, self).__getslice__
+        return self.__class__(getslice(*args, **kwargs))
+
+
+class LTSmixin(object):
+
+    class Meta(type):
+
+        def __getitem__(cls, args):
+            if isinstance(args, tuple):
+                return cls(args)
+            else:
+                return cls((args, ))
+
+    __metaclass__ = Meta
+
+
+class List(Seq, LTSmixin, LTmixin, list):
+
+    # def __add__(self, other):
+    #     return self + List(other)
+
     pass
 
 
-class List(Seq, Foo, list):
+class Tuple(Seq, LTSmixin, LTmixin, tuple):
 
-    class Meta(type):
+    # def __add__(self, other):
+    #     return self + Tuple(other)
 
-        def __getitem__(self, args):
-            if isinstance(args, tuple):
-                return List(args)
-            else:
-                return List((args, ))
-
-    __metaclass__ = Meta
-
-    def __getslice__(self, *args, **kwargs):
-        getslice = super(List, self).__getslice__
-        return List(getslice(*args, **kwargs))
+    pass
 
 
-class Tuple(Seq, tuple):
+class Set(Seq, LTSmixin, set):
 
-    class Meta(type):
+    # def __add__(self, other):
+    #     return self | Set(other)
 
-        def __getitem__(self, args):
-            return Tuple(args)
+    # __add__ = set.union
 
-    __metaclass__ = Meta
+    pass
 
 
-class Dict(dict, Seq):
+class Dict(Seq, dict):
 
-    class Meta(type):
+    # class Meta(type):
 
-        def __getitem__(self, foo):
-            pass
-            # import ipdb; ipdb.set_trace()
-            # print foo
-            # return Dict((arg.start, arg.stop) for arg in foo)
+    #     def __getitem__(self, foo):
+    #         pass
+    #         # import ipdb; ipdb.set_trace()
+    #         # print foo
+    #         # return Dict((arg.start, arg.stop) for arg in foo)
 
-    __metaclass__ = Meta
+    # __metaclass__ = Meta
 
     __iter__ = dict.iteritems
 
-    def __getitem__(self, items):
-        getter = super(Dict, self).__getitem__
-        if isinstance(items, tuple):
-            return map(getter, items)
-        else:
-            return getter(items)
+    # def __add__(self, other):
+    #     return 42
 
+    # __add__ = dict.update
 
-class Set(set):
-
-    class Meta(type):
-
-        def __getitem__(self, args):
-            return Set(args)
-
-    __metaclass__ = Meta
-
-
-# class Str(Seq, str):
-#     pass
-
-
-# class Unicode(Seq, unicode):
-#     pass
+    # def __getitem__(self, items):
+    #     getter = super(Dict, self).__getitem__
+    #     if isinstance(items, tuple):
+    #         return map(getter, items)
+    #     else:
+    #         return getter(items)
 
 
 L = List
 T = Tuple
 S = Set
 D = Dict
+
+
+# todo
+# isL

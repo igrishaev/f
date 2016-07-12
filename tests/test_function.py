@@ -40,10 +40,12 @@ def div(a, b):
     return a / b
 
 
-class Foo:
-    class Bar:
-        class Baz:
-            secret = 42
+class Rabbit:
+    class Duck:
+        class Egg:
+            class Needle:
+                class Death:
+                    on = True
 
 
 #
@@ -83,11 +85,11 @@ def test_pcall_decorator_name():
 
 
 def test_achain():
-    assert 42 == f.achain(Foo, 'Bar', 'Baz', 'secret')
+    assert True is f.achain(Rabbit, 'Duck', 'Egg', 'Needle', 'Death', 'on')
 
 
 def test_achain_missed():
-    assert f.achain(Foo, 'Bar', 'Bob', 'secret') is None
+    assert None is f.achain(Rabbit, 'Duck', 'Egg', 'Needle', 'Life', 'on')
 
 
 def test_ichain_ok():
