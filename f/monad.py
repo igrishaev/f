@@ -84,9 +84,6 @@ class Success(object):
     def get(self):
         return self.__val
 
-    def recover(self, exc_class, val_or_func):
-        return self
-
 
 class Failture(object):
 
@@ -100,27 +97,6 @@ class Failture(object):
 
     def get(self):
         raise self.__val
-
-    def recover(self, exc_class, val_or_func):
-
-        e = self.__val
-
-        def is_callable(val):
-            return hasattr(val_or_func, '__call__')
-
-        def resolve():
-
-            if is_callable(val_or_func):
-                return val_or_func(e)
-
-            else:
-                return val_or_func
-
-        if isinstance(e, exc_class):
-            return Try.Success(resolve())
-
-        else:
-            return self
 
 
 class IO(object):
@@ -137,56 +113,54 @@ class IO(object):
         return self.__val
 
 
-def maybe(cls):
+def maybe(pred):
 
-    def _maybe(x):
+    def maybe_unit(x):
 
-        if isinstance(x, cls):
-            return Right(x)
+        if pred(x):
+            return Just(x)
 
         else:
             return Nothing()
 
-    return _maybe
+    return maybe_unit
 
 
-def maybe_wraps(cls):
+def maybe_wraps(pred):
 
     def decorator(func):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            val = func(*args, **kwargs)
-            return maybe(cls)(val)
+            return maybe(pred)(func(*args, **kwargs))
 
         return wrapper
 
     return decorator
 
 
-def either(cls_l, cls_r):
+def either(pred_l, pred_r):
 
-    def _either(x):
+    def either_unit(x):
 
-        if isinstance(x, cls_l):
+        if pred_l(x):
             return Left(x)
 
-        if isinstance(x, cls_r):
+        if pred_r(x):
             return Right(x)
 
         raise TypeError("todo")
 
-    return _either
+    return either_unit
 
 
-def either_wraps(cls_l, cls_r):
+def either_wraps(pred_l, pred_r):
 
     def decorator(func):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            val = func(*args, **kwargs)
-            return either(cls_l, cls_r)(val)
+            return either(pred_l, pred_r)(func(*args, **kwargs))
 
         return wrapper
 
@@ -198,6 +172,9 @@ def error(func, *args, **kwargs):
         return Success(func(*args, **kwargs))
     except Exception as e:
         return Failture(e)
+    except:
+        _, e_val, _ = sys.exc_info()
+        return Failture(e_val)
 
 
 def error_wraps(func):
@@ -209,19 +186,10 @@ def error_wraps(func):
     return wrapper
 
 
-# def io(func, *args, **kwargs):
-#     return IO()
-#     try:
-#         return Success(func(*args, **kwargs))
-#     except Exception as e:
-#         return Failture(e)
-
-
 def io_wraps(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        val = func(*args, **kwargs)
-        return IO(cls_l, cls_r)(val)
+        return IO(func(*args, **kwargs))
 
     return wrapper
