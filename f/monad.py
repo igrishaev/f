@@ -30,6 +30,9 @@ class Just(object):
     def __rshift__(self, func):
         return func(self.__val)
 
+    def __eq__(self, other):
+        return isinstance(other, Just) and self.__val == other.__val
+
     def get(self):
         return self.__val
 
@@ -38,6 +41,9 @@ class Nothing(object):
 
     def __rshift__(self, func):
         return self
+
+    def __eq__(self, other):
+        return isinstance(other, Nothing)
 
     def get(self):
         return None
@@ -53,6 +59,9 @@ class Left(object):
     def __rshift__(self, func):
         return self
 
+    def __eq__(self, other):
+        return isinstance(other, Left) and self.__val == other.__val
+
     def get(self):
         return self.__val
 
@@ -66,6 +75,9 @@ class Right(object):
 
     def __rshift__(self, func):
         return func(self.__val)
+
+    def __eq__(self, other):
+        return isinstance(other, Right) and self.__val == other.__val
 
     def get(self):
         return self.__val
@@ -84,6 +96,9 @@ class Success(object):
     def get(self):
         return self.__val
 
+    def recover(self, exc_class, val_or_func):
+        return self
+
 
 class Failture(object):
 
@@ -97,6 +112,27 @@ class Failture(object):
 
     def get(self):
         raise self.__val
+
+    def recover(self, exc_class, val_or_func):
+
+        e = self.__val
+
+        def is_callable(val):
+            return hasattr(val_or_func, '__call__')
+
+        def resolve():
+
+            if is_callable(val_or_func):
+                return val_or_func(e)
+
+            else:
+                return val_or_func
+
+        if isinstance(e, exc_class):
+            return Success(resolve())
+
+        else:
+            return self
 
 
 class IO(object):

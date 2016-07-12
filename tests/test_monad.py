@@ -10,10 +10,7 @@ import pytest
 #
 
 
-# MaybeInt = Maybe[int]
-
-#@f.maybe_decorator((int, float))
-# @MaybeInt.decorate
+@f.maybe_wraps(f.p_num)
 def mdiv(a, b):
     if b:
         return a / b
@@ -21,7 +18,7 @@ def mdiv(a, b):
         return None
 
 
-@f.maybe_decorator(float)
+@f.maybe_wraps(f.p_num)
 def msqrt(a):
     if a >= 0:
         return math.sqrt(a)
@@ -29,7 +26,8 @@ def msqrt(a):
         return None
 
 
-@f.either_decorator(str, (int, float))
+
+@f.either_wraps(f.p_str, f.p_num)
 def ediv(a, b):
     if b == 0:
         return "Div by zero: %s / %s" % (a, b)
@@ -37,10 +35,7 @@ def ediv(a, b):
         return a / b
 
 
-EitherStrFloat = f.Either[str, float]
-
-#@f.either_decorator(str, float)
-@EitherStrFloat.decorate
+@f.either_wraps(f.p_str, f.p_num)
 def esqrt(a):
     if a < 0:
         return "Negative number: %s" % a
@@ -48,86 +43,140 @@ def esqrt(a):
         return math.sqrt(a)
 
 
-import ipdb; ipdb.set_trace()
-
-
-@f.try_decorator
+@f.error_wraps
 def tdiv(a, b):
     return a / b
 
 
-@f.try_decorator
+@f.error_wraps
 def tsqrt(a):
     return math.sqrt(a)
 
 
+@pytest.mark.parametrize("x", (2, "error"))
+def test_maybe_laws(x):
+
+    p = f.p_int
+    unit = f.maybe(p)
+
+    @f.maybe_wraps(p)
+    def g(x):
+        return x * 2
+
+    @f.maybe_wraps(f.p_int)
+    def h(x):
+        return x + 2
+
+    # todo: test Nothing
+
+    # 1
+    assert unit(x) >> g == g(x)
+
+    # 2
+    mv = g(x)
+    assert mv >> unit == mv
+
+    # 3
+    (mv >> g) >> h == mv >> (lambda x: g(x) >> h)
+
+
 def test_maybe():
 
-    with pytest.raises(NotImplementedError):
-        f.Maybe()
+    def resolve(x):
+        return x
 
-    MaybeInt = f.Maybe[int]
+    unit = f.maybe(f.p_int)
 
-    m = MaybeInt(42)
-    assert isinstance(m, MaybeInt.JustInt)
+    m = unit(42)
+    assert isinstance(m, f.Just)
 
-    m = Maybe(None)
-    assert isinstance(m, Maybe.Nothing)
+    # assert 42 == m >> resolve
+
+    m = unit(None)
+    assert isinstance(m, f.Nothing)
 
     m = mdiv(16, 4) >> msqrt
-    assert isinstance(m, Maybe.Just)
+    assert isinstance(m, f.Just)
 
     m = mdiv(16, 4.0) >> msqrt
-    assert isinstance(m, Maybe.Just)
-    assert 2 == m.get()
+    assert isinstance(m, f.Just)
+    assert 2 == m >> resolve
 
-    m = mdiv(16, 0) >> msqrt
-    assert isinstance(m, Maybe.Nothing)
-    assert None is m.get()
+    # todo
+    # m = mdiv(16, 0) >> msqrt
+    # assert isinstance(m, f.Nothing)
+    # assert None is (m >> resolve)
 
     m = mdiv(16, -4) >> msqrt
-    assert isinstance(m, Maybe.Nothing)
+    assert isinstance(m, f.Nothing)
 
 
 def test_either():
 
-    with pytest.raises(NotImplementedError):
-        f.Either()
+    unit = f.either(f.p_str, f.p_num)
 
-    Either = f.Either[str, int]
+    m = unit("error")
+    assert isinstance(m, f.Left)
+    # assert "error" == m.get()
 
-    m = Either("error")
-    assert isinstance(m, f.Either.Left)
-    assert "error" == m.get()
-
-    m = Either(42)
-    assert isinstance(m, f.Either.Right)
-    assert 42 == m.get()
+    m = unit(42)
+    assert isinstance(m, f.Right)
+    # assert 42 == m.get()
 
     m = ediv(16, 4) >> esqrt
-    assert isinstance(m, f.Either.Right)
-    assert 2 == m.get()
+    assert isinstance(m, f.Right)
+    # assert 2 == m.get()
 
     m = ediv(16, -4) >> esqrt
-    assert isinstance(m, f.Either.Left)
-    assert "Negative number: -4" == m.get()
+    assert isinstance(m, f.Left)
+    # assert "Negative number: -4" == m.get()
 
     m = ediv(16, 0) >> esqrt
-    assert isinstance(m, f.Either.Left)
-    assert "Div by zero: 16 / 0" == m.get()
+    assert isinstance(m, f.Left)
+    # assert "Div by zero: 16 / 0" == m.get()
 
 
-def test_try():
+@pytest.mark.parametrize("x", (2, -3))
+def test_either_laws(x):
 
-    Try = f.Try
+    p = (f.p_str, f.p_num)
+    unit = f.either(*p)
 
-    m = Try((lambda a, b: a / b), 16, b=4)
-    assert isinstance(m, Try.Success)
+    @f.either_wraps(*p)
+    def g(x):
+        if x > 0:
+            return x + 2
+        else:
+            return "less the zero"
+
+    @f.either_wraps(*p)
+    def h(x):
+        if x > 0:
+            return x + 3
+        else:
+            return "less the zero2"
+
+    # import ipdb; ipdb.set_trace()
+    # 1
+    assert unit(x) >> g == g(x)
+
+    # 2
+    mv = g(x)
+    assert mv >> unit == mv
+
+    # 3
+    (mv >> g) >> h == mv >> (lambda x: g(x) >> h)
+
+
+def test_error():
+
+    m = f.error((lambda a, b: a / b), 16, b=4)
+    assert isinstance(m, f.Success)
 
     assert 4 == m.get()
 
-    m = Try((lambda a, b: a / b), 16, b=0)
-    assert isinstance(m, Try.Failture)
+    m = f.error((lambda a, b: a / b), 16, b=0)
+    assert isinstance(m, f.Failture)
 
     with pytest.raises(ZeroDivisionError):
         m.get()
@@ -135,10 +184,10 @@ def test_try():
 
 def test_failture():
 
-    m = f.Try(lambda: 1 / 0)
+    m = f.error(lambda: 1 / 0)
 
     res = m.recover(ZeroDivisionError, 0)
-    assert isinstance(res, f.Try.Success)
+    assert isinstance(res, f.Success)
 
     assert 0 == res.get()
 
@@ -146,7 +195,7 @@ def test_failture():
         m.get()
 
     res = m.recover(MemoryError, 0)
-    assert isinstance(res, f.Try.Failture)
+    assert isinstance(res, f.Failture)
 
 
 def test_generic_exc():
@@ -156,52 +205,52 @@ def test_generic_exc():
     def raiser():
         raise socket.error('old-style-exc')
 
-    m = f.Try(raiser)
-    assert isinstance(m, f.Try.Failture)
+    m = f.error(raiser)
+    assert isinstance(m, f.Failture)
 
     res = m.recover(socket.error, 42)
-    assert isinstance(res, f.Try.Success)
+    assert isinstance(res, f.Success)
 
 
 def test_failture_recover_multi():
 
-    m = f.Try(lambda: 1 / 0)
+    m = f.error(lambda: 1 / 0)
 
     res = m \
         .recover(MemoryError, 1) \
         .recover(TypeError, 2) \
         .recover(ValueError, 3)
 
-    assert isinstance(res, f.Try.Failture)
+    assert isinstance(res, f.Failture)
 
     def handler(exc):
         return exc.__class__.__name__
 
     res2 = res.recover((AttributeError, ZeroDivisionError), handler)
-    assert isinstance(res2, f.Try.Success)
+    assert isinstance(res2, f.Success)
     assert "ZeroDivisionError" == res2.get()
 
 
 def test_success_recover():
 
-    m = f.Try(lambda: 1).recover(Exception, 0)
-    assert isinstance(m, f.Try.Success)
+    m = f.error(lambda: 1).recover(Exception, 0)
+    assert isinstance(m, f.Success)
     assert 1 == m.get()
 
 
 def test_try_decorator():
 
     m = tdiv(16, 4) >> tsqrt
-    assert isinstance(m, f.Try.Success)
+    assert isinstance(m, f.Success)
     assert 2 == m.get()
 
     m = tdiv(16, 0) >> tsqrt
-    assert isinstance(m, f.Try.Failture)
+    assert isinstance(m, f.Failture)
     with pytest.raises(ZeroDivisionError):
         m.get()
 
     m = tdiv(16, -4) >> tsqrt
-    assert isinstance(m, f.Try.Failture)
+    assert isinstance(m, f.Failture)
     with pytest.raises(ValueError):
         m.get()
 
@@ -211,11 +260,11 @@ def test_io(monkeypatch, capsys):
     monkeypatch.setattr('__builtin__.raw_input',
                         (lambda prompt: "hello"))
 
-    @f.io_decorator
+    @f.io_wraps
     def read_line(prompt):
         return raw_input(prompt)
 
-    @f.io_decorator
+    @f.io_wraps
     def write_line(text):
         print text
 
@@ -230,27 +279,27 @@ def test_io(monkeypatch, capsys):
 
 def test_maybe_unit():
 
-    Maybe = f.Maybe[int]
+    Maybe = f.maybe(f.p_int)
 
     m = Maybe(42)
-    assert isinstance(m, Maybe.Just)
+    assert isinstance(m, f.Just)
     assert 42 == m.get()
 
     m = Maybe("error")
-    assert isinstance(m, Maybe.Nothing)
+    assert isinstance(m, f.Nothing)
     assert None is m.get()
 
 
-def test_():
+def test_either_unit():
 
-    Either = f.Either[str, int]
+    Either = f.either(f.p_str, f.p_num)
 
     m = Either(42)
-    assert isinstance(m, Either.Right)
+    assert isinstance(m, f.Right)
     assert 42 == m.get()
 
     m = Either("error")
-    assert isinstance(m, Either.Left)
+    assert isinstance(m, f.Left)
     assert "error" == m.get()
 
     with pytest.raises(TypeError):
