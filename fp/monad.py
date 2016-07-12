@@ -7,9 +7,11 @@ __all__ = (
     'Maybe',
     'Either',
     'Try',
+    'IO',
     'maybe_decorator',
     'either_decorator',
     'try_decorator',
+    'io_decorator',
 )
 
 
@@ -175,6 +177,20 @@ class Try(object):
             return Try.Failture(e_val)
 
 
+class IO(object):
+
+    __slots__ = ('__val', )
+
+    def __init__(self, val):
+        self.__val = val
+
+    def __rshift__(self, func):
+        return func(self.__val)
+
+    def get(self):
+        return self.__val
+
+
 def maybe_decorator(cls):
 
     def decorator(func):
@@ -210,5 +226,14 @@ def try_decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         return Try(func, *args, **kwargs)
+
+    return wrapper
+
+
+def io_decorator(func):
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return IO(func(*args, **kwargs))
 
     return wrapper

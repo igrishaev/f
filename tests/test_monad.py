@@ -199,11 +199,29 @@ def test_try_decorator():
         m.get()
 
 
-def test_maybe_decorator():
-    pass
+def test_io(monkeypatch, capsys):
+
+    monkeypatch.setattr('__builtin__.raw_input',
+                        (lambda prompt: "hello"))
+
+    @fp.io_decorator
+    def read_line(prompt):
+        return raw_input(prompt)
+
+    @fp.io_decorator
+    def write_line(text):
+        print text
+
+    res = read_line("test: ") >> write_line
+    assert isinstance(res, fp.IO)
+    assert None is res.get()
+
+    out, err = capsys.readouterr()
+    assert "hello\n" == out
+    assert "" == err
 
 
-def test_foo():
+def test_maybe_unit():
 
     Maybe = fp.Maybe[int]
 
@@ -216,7 +234,7 @@ def test_foo():
     assert None is m.get()
 
 
-def test_bar():
+def test_():
 
     Either = fp.Either[str, int]
 
