@@ -1,7 +1,7 @@
 
 import math
 
-import fp
+import f
 
 import pytest
 
@@ -10,7 +10,7 @@ import pytest
 #
 
 
-@fp.maybe_decorator((int, float))
+@f.maybe_decorator((int, float))
 def mdiv(a, b):
     if b:
         return a / b
@@ -18,7 +18,7 @@ def mdiv(a, b):
         return None
 
 
-@fp.maybe_decorator(float)
+@f.maybe_decorator(float)
 def msqrt(a):
     if a >= 0:
         return math.sqrt(a)
@@ -26,7 +26,7 @@ def msqrt(a):
         return None
 
 
-@fp.either_decorator(str, (int, float))
+@f.either_decorator(str, (int, float))
 def ediv(a, b):
 
     if b == 0:
@@ -36,7 +36,7 @@ def ediv(a, b):
         return a / b
 
 
-@fp.either_decorator(str, float)
+@f.either_decorator(str, float)
 def esqrt(a):
 
     if a < 0:
@@ -49,9 +49,9 @@ def esqrt(a):
 def test_maybe():
 
     with pytest.raises(NotImplementedError):
-        fp.Maybe()
+        f.Maybe()
 
-    Maybe = fp.Maybe[int]
+    Maybe = f.Maybe[int]
 
     m = Maybe(42)
     assert isinstance(m, Maybe.Just)
@@ -77,9 +77,9 @@ def test_maybe():
 def test_either():
 
     with pytest.raises(NotImplementedError):
-        fp.Either()
+        f.Either()
 
-    Either = fp.Either[str, int]
+    Either = f.Either[str, int]
 
     m = Either("error")
     assert isinstance(m, Either.Left)
@@ -104,7 +104,7 @@ def test_either():
 
 def test_try():
 
-    Try = fp.Try
+    Try = f.Try
 
     m = Try((lambda a, b: a / b), 16, b=4)
     assert isinstance(m, Try.Success)
@@ -120,10 +120,10 @@ def test_try():
 
 def test_failture():
 
-    m = fp.Try(lambda: 1 / 0)
+    m = f.Try(lambda: 1 / 0)
 
     res = m.recover(ZeroDivisionError, 0)
-    assert isinstance(res, fp.Try.Success)
+    assert isinstance(res, f.Try.Success)
 
     assert 0 == res.get()
 
@@ -131,7 +131,7 @@ def test_failture():
         m.get()
 
     res = m.recover(MemoryError, 0)
-    assert isinstance(res, fp.Try.Failture)
+    assert isinstance(res, f.Try.Failture)
 
 
 def test_generic_exc():
@@ -141,60 +141,60 @@ def test_generic_exc():
     def raiser():
         raise socket.error('old-style-exc')
 
-    m = fp.Try(raiser)
-    assert isinstance(m, fp.Try.Failture)
+    m = f.Try(raiser)
+    assert isinstance(m, f.Try.Failture)
 
     res = m.recover(socket.error, 42)
-    assert isinstance(res, fp.Try.Success)
+    assert isinstance(res, f.Try.Success)
 
 
 def test_failture_recover_multi():
 
-    m = fp.Try(lambda: 1 / 0)
+    m = f.Try(lambda: 1 / 0)
 
     res = m \
         .recover(MemoryError, 1) \
         .recover(TypeError, 2) \
         .recover(ValueError, 3)
 
-    assert isinstance(res, fp.Try.Failture)
+    assert isinstance(res, f.Try.Failture)
 
     def handler(exc):
         return exc.__class__.__name__
 
     res2 = res.recover((AttributeError, ZeroDivisionError), handler)
-    assert isinstance(res2, fp.Try.Success)
+    assert isinstance(res2, f.Try.Success)
     assert "ZeroDivisionError" == res2.get()
 
 
 def test_success_recover():
 
-    m = fp.Try(lambda: 1).recover(Exception, 0)
-    assert isinstance(m, fp.Try.Success)
+    m = f.Try(lambda: 1).recover(Exception, 0)
+    assert isinstance(m, f.Try.Success)
     assert 1 == m.get()
 
 
 def test_try_decorator():
 
-    @fp.try_decorator
+    @f.try_decorator
     def div(a, b):
         return a / b
 
-    @fp.try_decorator
+    @f.try_decorator
     def sqrt(a):
         return math.sqrt(a)
 
     m = div(16, 4) >> sqrt
-    assert isinstance(m, fp.Try.Success)
+    assert isinstance(m, f.Try.Success)
     assert 2 == m.get()
 
     m = div(16, 0) >> sqrt
-    assert isinstance(m, fp.Try.Failture)
+    assert isinstance(m, f.Try.Failture)
     with pytest.raises(ZeroDivisionError):
         m.get()
 
     m = div(16, -4) >> sqrt
-    assert isinstance(m, fp.Try.Failture)
+    assert isinstance(m, f.Try.Failture)
     with pytest.raises(ValueError):
         m.get()
 
@@ -204,16 +204,16 @@ def test_io(monkeypatch, capsys):
     monkeypatch.setattr('__builtin__.raw_input',
                         (lambda prompt: "hello"))
 
-    @fp.io_decorator
+    @f.io_decorator
     def read_line(prompt):
         return raw_input(prompt)
 
-    @fp.io_decorator
+    @f.io_decorator
     def write_line(text):
         print text
 
     res = read_line("test: ") >> write_line
-    assert isinstance(res, fp.IO)
+    assert isinstance(res, f.IO)
     assert None is res.get()
 
     out, err = capsys.readouterr()
@@ -223,7 +223,7 @@ def test_io(monkeypatch, capsys):
 
 def test_maybe_unit():
 
-    Maybe = fp.Maybe[int]
+    Maybe = f.Maybe[int]
 
     m = Maybe(42)
     assert isinstance(m, Maybe.Just)
@@ -236,7 +236,7 @@ def test_maybe_unit():
 
 def test_():
 
-    Either = fp.Either[str, int]
+    Either = f.Either[str, int]
 
     m = Either(42)
     assert isinstance(m, Either.Right)

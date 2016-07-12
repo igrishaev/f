@@ -1,27 +1,27 @@
 
 import pytest
 
-import fp
+import f
 
 
 @pytest.yield_fixture
 def gen():
 
-    gen = fp.Generic()
+    gen = f.Generic()
 
-    @gen.extend(fp.p_int, fp.p_str)
+    @gen.extend(f.p_int, f.p_str)
     def handler1(x, y):
         return str(x) + y
 
-    @gen.extend(fp.p_int, fp.p_int)
+    @gen.extend(f.p_int, f.p_int)
     def handler2(x, y):
         return x + y
 
-    @gen.extend(fp.p_str, fp.p_str)
+    @gen.extend(f.p_str, f.p_str)
     def handler3(x, y):
         return x + y + x + y
 
-    @gen.extend(fp.p_str)
+    @gen.extend(f.p_str)
     def handler4(x):
         return "-".join(reversed(x))
 
@@ -29,7 +29,7 @@ def gen():
     def handler5():
         return 42
 
-    @gen.extend(fp.p_none)
+    @gen.extend(f.p_none)
     def handler6(x):
         return gen(1, 2)
 
@@ -63,7 +63,7 @@ def test_default(gen):
 
 def test_handler_is_gen(gen):
 
-    @gen.extend(fp.p_dict)
+    @gen.extend(f.p_dict)
     def handler8(x):
         return 100500
 
