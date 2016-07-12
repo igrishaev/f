@@ -28,22 +28,28 @@ def msqrt(a):
 
 @f.either_decorator(str, (int, float))
 def ediv(a, b):
-
     if b == 0:
         return "Div by zero: %s / %s" % (a, b)
-
     else:
         return a / b
 
 
 @f.either_decorator(str, float)
 def esqrt(a):
-
     if a < 0:
         return "Negative number: %s" % a
-
     else:
         return math.sqrt(a)
+
+
+@f.try_decorator
+def tdiv(a, b):
+    return a / b
+
+
+@f.try_decorator
+def tsqrt(a):
+    return math.sqrt(a)
 
 
 def test_maybe():
@@ -176,24 +182,16 @@ def test_success_recover():
 
 def test_try_decorator():
 
-    @f.try_decorator
-    def div(a, b):
-        return a / b
-
-    @f.try_decorator
-    def sqrt(a):
-        return math.sqrt(a)
-
-    m = div(16, 4) >> sqrt
+    m = tdiv(16, 4) >> tsqrt
     assert isinstance(m, f.Try.Success)
     assert 2 == m.get()
 
-    m = div(16, 0) >> sqrt
+    m = tdiv(16, 0) >> tsqrt
     assert isinstance(m, f.Try.Failture)
     with pytest.raises(ZeroDivisionError):
         m.get()
 
-    m = div(16, -4) >> sqrt
+    m = tdiv(16, -4) >> tsqrt
     assert isinstance(m, f.Try.Failture)
     with pytest.raises(ValueError):
         m.get()
