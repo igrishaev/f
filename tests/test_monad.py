@@ -10,7 +10,10 @@ import pytest
 #
 
 
-@f.maybe_decorator((int, float))
+# MaybeInt = Maybe[int]
+
+#@f.maybe_decorator((int, float))
+# @MaybeInt.decorate
 def mdiv(a, b):
     if b:
         return a / b
@@ -34,12 +37,18 @@ def ediv(a, b):
         return a / b
 
 
-@f.either_decorator(str, float)
+EitherStrFloat = f.Either[str, float]
+
+#@f.either_decorator(str, float)
+@EitherStrFloat.decorate
 def esqrt(a):
     if a < 0:
         return "Negative number: %s" % a
     else:
         return math.sqrt(a)
+
+
+import ipdb; ipdb.set_trace()
 
 
 @f.try_decorator
@@ -57,10 +66,10 @@ def test_maybe():
     with pytest.raises(NotImplementedError):
         f.Maybe()
 
-    Maybe = f.Maybe[int]
+    MaybeInt = f.Maybe[int]
 
-    m = Maybe(42)
-    assert isinstance(m, Maybe.Just)
+    m = MaybeInt(42)
+    assert isinstance(m, MaybeInt.JustInt)
 
     m = Maybe(None)
     assert isinstance(m, Maybe.Nothing)
@@ -88,23 +97,23 @@ def test_either():
     Either = f.Either[str, int]
 
     m = Either("error")
-    assert isinstance(m, Either.Left)
+    assert isinstance(m, f.Either.Left)
     assert "error" == m.get()
 
     m = Either(42)
-    assert isinstance(m, Either.Right)
+    assert isinstance(m, f.Either.Right)
     assert 42 == m.get()
 
     m = ediv(16, 4) >> esqrt
-    assert isinstance(m, Either.Right)
+    assert isinstance(m, f.Either.Right)
     assert 2 == m.get()
 
     m = ediv(16, -4) >> esqrt
-    assert isinstance(m, Either.Left)
+    assert isinstance(m, f.Either.Left)
     assert "Negative number: -4" == m.get()
 
     m = ediv(16, 0) >> esqrt
-    assert isinstance(m, Either.Left)
+    assert isinstance(m, f.Either.Left)
     assert "Div by zero: 16 / 0" == m.get()
 
 

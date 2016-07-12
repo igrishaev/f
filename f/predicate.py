@@ -2,6 +2,8 @@
 import operator
 from functools import partial, wraps
 
+# todo __all__
+
 #
 # Binary
 #

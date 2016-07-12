@@ -3,178 +3,124 @@ import sys
 from functools import wraps
 
 __all__ = (
-
-    'Maybe',
-    'Either',
-    'Try',
+    'Just',
+    'Nothing',
+    'Left',
+    'Right',
+    'Success',
+    'Failture',
     'IO',
-    'maybe_decorator',
-    'either_decorator',
-    'try_decorator',
-    'io_decorator',
+    'maybe',
+    'maybe_wraps',
+    'either',
+    'either_wraps',
+    'error',
+    'error_wraps',
+    'io_wraps',
 )
 
 
-class Maybe(object):
+class Just(object):
 
-    class Just(object):
+    __slots__ = ('__val', )
 
-        __slots__ = ('__val', )
+    def __init__(self, val):
+        self.__val = val
 
-        def __init__(self, val):
-            self.__val = val
+    def __rshift__(self, func):
+        return func(self.__val)
 
-        def __rshift__(self, func):
-            return func(self.__val)
-
-        def get(self):
-            return self.__val
-
-    class Nothing(object):
-
-        def __rshift__(self, func):
-            return self
-
-        def get(self):
-            return None
-
-    class Meta(type):
-
-        def __getitem__(cls, tp):
-
-            @wraps(Maybe)
-            def wrapper(val):
-
-                if isinstance(val, tp):
-                    return Maybe.Just(val)
-
-                else:
-                    return Maybe.Nothing()
-
-            return wrapper
-
-    __metaclass__ = Meta
-
-    def __init__(self):
-        raise NotImplementedError
+    def get(self):
+        return self.__val
 
 
-class Either(object):
+class Nothing(object):
 
-    class Left(object):
+    def __rshift__(self, func):
+        return self
 
-        __slots__ = ('__val', )
-
-        def __init__(self, val):
-            self.__val = val
-
-        def __rshift__(self, func):
-            return self
-
-        def get(self):
-            return self.__val
-
-    class Right(object):
-
-        __slots__ = ('__val', )
-
-        def __init__(self, val):
-            self.__val = val
-
-        def __rshift__(self, func):
-            return func(self.__val)
-
-        def get(self):
-            return self.__val
-
-    class Meta(type):
-
-        def __getitem__(cls, (tp_l, tp_r)):
-
-            @wraps(Either)
-            def wrapper(val):
-
-                if isinstance(val, tp_l):
-                    return Either.Left(val)
-
-                if isinstance(val, tp_r):
-                    return Either.Right(val)
-
-                msg = ('Value %s is neither <%s> nor <%s> instance.'
-                       % (val, tp_l.__name__, tp_r.__name__))
-                raise TypeError(msg)
-
-            return wrapper
-
-    __metaclass__ = Meta
-
-    def __init__(self):
-        raise NotImplementedError
+    def get(self):
+        return None
 
 
-class Try(object):
+class Left(object):
 
-    class Success(object):
+    __slots__ = ('__val', )
 
-        __slots__ = ('__val', )
+    def __init__(self, val):
+        self.__val = val
 
-        def __init__(self, val):
-            self.__val = val
+    def __rshift__(self, func):
+        return self
 
-        def __rshift__(self, func):
-            return func(self.__val)
+    def get(self):
+        return self.__val
 
-        def get(self):
-            return self.__val
 
-        def recover(self, exc_class, val_or_func):
-            return self
+class Right(object):
 
-    class Failture(object):
+    __slots__ = ('__val', )
 
-        __slots__ = ('__val', )
+    def __init__(self, val):
+        self.__val = val
 
-        def __init__(self, val):
-            self.__val = val
+    def __rshift__(self, func):
+        return func(self.__val)
 
-        def __rshift__(self, func):
-            return self
+    def get(self):
+        return self.__val
 
-        def get(self):
-            raise self.__val
 
-        def recover(self, exc_class, val_or_func):
+class Success(object):
 
-            e = self.__val
+    __slots__ = ('__val', )
 
-            def is_callable(val):
-                return hasattr(val_or_func, '__call__')
+    def __init__(self, val):
+        self.__val = val
 
-            def resolve():
+    def __rshift__(self, func):
+        return func(self.__val)
 
-                if is_callable(val_or_func):
-                    return val_or_func(e)
+    def get(self):
+        return self.__val
 
-                else:
-                    return val_or_func
+    def recover(self, exc_class, val_or_func):
+        return self
 
-            if isinstance(e, exc_class):
-                return Try.Success(resolve())
+
+class Failture(object):
+
+    __slots__ = ('__val', )
+
+    def __init__(self, val):
+        self.__val = val
+
+    def __rshift__(self, func):
+        return self
+
+    def get(self):
+        raise self.__val
+
+    def recover(self, exc_class, val_or_func):
+
+        e = self.__val
+
+        def is_callable(val):
+            return hasattr(val_or_func, '__call__')
+
+        def resolve():
+
+            if is_callable(val_or_func):
+                return val_or_func(e)
 
             else:
-                return self
+                return val_or_func
 
-    def __new__(cls, func, *args, **kwargs):
+        if isinstance(e, exc_class):
+            return Try.Success(resolve())
 
-        try:
-            return Try.Success(func(*args, **kwargs))
-
-        except Exception as e:
-            return Try.Failture(e)
-
-        except:
-            e_cls, e_val, e_tb = sys.exc_info()
-            return Try.Failture(e_val)
+        else:
+            return self
 
 
 class IO(object):
@@ -191,49 +137,91 @@ class IO(object):
         return self.__val
 
 
-def maybe_decorator(cls):
+def maybe(cls):
+
+    def _maybe(x):
+
+        if isinstance(x, cls):
+            return Right(x)
+
+        else:
+            return Nothing()
+
+    return _maybe
+
+
+def maybe_wraps(cls):
 
     def decorator(func):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-
             val = func(*args, **kwargs)
-            return Maybe[cls](val)
+            return maybe(cls)(val)
 
         return wrapper
 
     return decorator
 
 
-def either_decorator(type_left, type_right):
+def either(cls_l, cls_r):
+
+    def _either(x):
+
+        if isinstance(x, cls_l):
+            return Left(x)
+
+        if isinstance(x, cls_r):
+            return Right(x)
+
+        raise TypeError("todo")
+
+    return _either
+
+
+def either_wraps(cls_l, cls_r):
 
     def decorator(func):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-
             val = func(*args, **kwargs)
-            return Either[type_left, type_right](val)
+            return either(cls_l, cls_r)(val)
 
         return wrapper
 
     return decorator
 
 
-def try_decorator(func):
+def error(func, *args, **kwargs):
+    try:
+        return Success(func(*args, **kwargs))
+    except Exception as e:
+        return Failture(e)
+
+
+def error_wraps(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        return Try(func, *args, **kwargs)
+        return error(func, *args, **kwargs)
 
     return wrapper
 
 
-def io_decorator(func):
+# def io(func, *args, **kwargs):
+#     return IO()
+#     try:
+#         return Success(func(*args, **kwargs))
+#     except Exception as e:
+#         return Failture(e)
+
+
+def io_wraps(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        return IO(func(*args, **kwargs))
+        val = func(*args, **kwargs)
+        return IO(cls_l, cls_r)(val)
 
     return wrapper
