@@ -1,0 +1,2 @@
+-r pip.requirements
+pytest==2.9.2

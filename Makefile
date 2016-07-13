@@ -5,5 +5,5 @@ test:
 pep:
 	flake8 .
 
-pyc:
+clean:
 	find . -name "*.pyc" -delete
