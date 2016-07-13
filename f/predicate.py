@@ -1,6 +1,10 @@
 
+
+
 import operator
 from functools import partial, wraps
+
+import six
 
 # todo __all__
 
@@ -53,13 +57,10 @@ def _inst(*cls):
     return predicate
 
 
-p_str = _unary(_inst(str))
-p_ustr = _unary(_inst(unicode))
-p_any_str = _unary(_inst(str, unicode))
-p_int = _unary(_inst(int))
+p_str = _unary(_inst(six.string_types))
+p_int = _unary(_inst(six.integer_types))
 p_float = _unary(_inst(float))
-p_long = _unary(_inst(long))
-p_num = _unary(_inst(int, long, float))
+p_num = _unary(_inst(six.integer_types + (float, )))
 p_list = _unary(_inst(list))
 p_tuple = _unary(_inst(tuple))
 p_set = _unary(_inst(set))

@@ -1,6 +1,8 @@
 
 from functools import partial, wraps
 
+import six
+
 __all__ = (
     'pcall',
     'pcall_decorator',
@@ -16,6 +18,9 @@ __all__ = (
     'second',
     'third',
 )
+
+reduce = six.moves.reduce
+range = six.moves.range
 
 
 def pcall(func, *args, **kwargs):
@@ -131,7 +136,7 @@ def nth(n, coll):
     elif hasattr(coll, '__iter__'):
 
         iterator = iter(coll)
-        for x in xrange(n + 1):
+        for x in range(n + 1):
             try:
                 val = next(iterator)
             except StopIteration:

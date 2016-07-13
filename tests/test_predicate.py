@@ -6,13 +6,10 @@ def test_unary():
 
     assert f.p_str("test")
     assert f.p_str(0) is False
-    assert f.p_str(u"test") is False
-
-    assert f.p_ustr(u"test")
+    assert f.p_str(u"test") is True
 
     assert f.p_num(1)
     assert f.p_num(1.0)
-    assert f.p_num(1L)
 
     assert f.p_array([1, 2, 3])
     assert f.p_array((1, 2, 3))

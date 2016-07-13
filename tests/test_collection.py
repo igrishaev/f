@@ -1,6 +1,8 @@
 
 import f
 
+import six
+
 
 def test_list():
 
@@ -47,8 +49,7 @@ def test_list():
     assert res == [1, 2, 3, 1, 2, 3]
     assert isinstance(res, f.L)
 
-    assert str(l1) == "List[1, 2, 3]"
-    assert unicode(l1) == u"List[1, 2, 3]"
+    assert six.text_type(l1) == "List[1, 2, 3]"
 
     t1 = l1.T()
     assert t1 == (1, 2, 3)
@@ -78,7 +79,7 @@ def test_list():
     assert [1, 1, 2, 2, 3, 3] == res
     assert isinstance(res, f.L)
 
-    res = f.L[(3, 1), (2, 2), (1, 3)].sorted(key=(lambda (a, b): a))
+    res = f.L[(3, 1), (2, 2), (1, 3)].sorted(key=(lambda pair: pair[0]))
     assert [(1, 3), (2, 2), (3, 1)] == res
     assert isinstance(res, f.L)
 
@@ -190,7 +191,7 @@ def test_dict_constructor():
     assert isinstance(node, f.D)
     assert 42 == node["baz"]
 
-    assert "Dict{'foo': Dict{'bar': Dict{'baz': 42}}}" == str(d)
+    assert "Dict{'foo': Dict{'bar': Dict{'baz': 42}}}" == six.text_type(d)
 
 
 def test_dict_iter():

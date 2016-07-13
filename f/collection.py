@@ -1,4 +1,6 @@
 
+import six
+
 __all__ = (
     'List',
     'Tuple',
@@ -43,7 +45,7 @@ class Seq(object):
         def reducer(res, item):
             return fn(res, item, *args, **kwargs)
 
-        return reduce(reducer, self, init)
+        return six.moves.reduce(reducer, self, init)
 
     # lt todo
     def sorted(self, key=None):
@@ -90,7 +92,8 @@ class Seq(object):
 
     # lt
     def group(self, n=2):
-        gen = (self[i: i+n] for i in xrange(0, len(self), n))
+        range = six.moves.range
+        gen = (self[i: i+n] for i in range(0, len(self), n))
         return self.cls(gen)
 
     def __add__(self, other):
@@ -137,22 +140,38 @@ class Seq(object):
 
 class LTmixin(object):
 
-    def __getslice__(self, *args, **kwargs):
-        getslice = super(LTmixin, self).__getslice__
-        return self.__class__(getslice(*args, **kwargs))
+    def __getitem__(self, item):
+
+        result = super(LTmixin, self).__getitem__(item)
+
+        if isinstance(item, slice):
+            return self.__class__(result)
+        else:
+            return result
+
+        #     return self.__getslice__
+        # else:
+        #     return super(LTmixin, self).__getitem__(item)
+
+    # PY2 only TODO
+    def __getslice__(self, *args):
+        result = super(LTmixin, self).__getslice__(*args)
+        return self.__class__(result)
 
 
+# todo rename
+class Foo(type):
+
+    def __getitem__(cls, args):
+        if isinstance(args, tuple):
+            return cls(args)
+        else:
+            return cls((args, ))
+
+
+@six.add_metaclass(Foo)
 class LTSmixin(object):
-
-    class Meta(type):
-
-        def __getitem__(cls, args):
-            if isinstance(args, tuple):
-                return cls(args)
-            else:
-                return cls((args, ))
-
-    __metaclass__ = Meta
+    pass
 
 
 class List(Seq, LTSmixin, LTmixin, list):
@@ -181,25 +200,31 @@ class Set(Seq, LTSmixin, set):
     pass
 
 
+class DictMeta(type):
+
+    def __getitem__(cls, slices):
+
+        if isinstance(slices, tuple):
+            slice_tuple = slices
+        else:
+            slice_tuple = (slices, )
+
+        keys = (sl.start for sl in slice_tuple)
+        vals = (sl.stop for sl in slice_tuple)
+
+        return cls(zip(keys, vals))
+
+
+@six.add_metaclass(DictMeta)
 class Dict(Seq, dict):
 
-    class Meta(type):
+    def __iter__(self):
 
-        def __getitem__(cls, slices):
+        if six.PY2:
+            return iter(self.iteritems())
 
-            if isinstance(slices, tuple):
-                slice_tuple = slices
-            else:
-                slice_tuple = (slices, )
-
-            keys = (sl.start for sl in slice_tuple)
-            vals = (sl.stop for sl in slice_tuple)
-
-            return cls(zip(keys, vals))
-
-    __metaclass__ = Meta
-
-    __iter__ = dict.iteritems
+        if six.PY3:
+            return iter(self.items())
 
 
 L = List

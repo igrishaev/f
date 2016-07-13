@@ -1,0 +1,5 @@
+-r pip.requirements
+pytest==2.9.2
+flake8==2.6.2
+ipython==5.0.0
+ipdb==0.10.1
