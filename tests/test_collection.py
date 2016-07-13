@@ -114,15 +114,15 @@ def test_tuple_constructor():
 def test_set_constructor():
 
     s = f.S((1, 2, 3))
-    assert {1, 2, 3} == s
+    assert set((1, 2, 3)) == s
     assert isinstance(s, f.S)
 
     s = f.S[1, 2, 3]
-    assert {1, 2, 3} == s
+    assert set((1, 2, 3)) == s
     assert isinstance(s, f.S)
 
     s = f.S[1]
-    assert {1} == s
+    assert set((1, )) == s
     assert isinstance(s, f.S)
 
 
@@ -144,12 +144,12 @@ def test_set_features():
 
     s = f.S[1, 2, 3]
 
-    assert {"1", "2", "3"} == s.map(str)
+    assert set(("1", "2", "3")) == s.map(str)
 
     assert f.S["a", "b"].join("-") in ("a-b", "b-a")
 
     res = s.filter(f.p_even)
-    assert {2} == res
+    assert set((2, )) == res
     assert isinstance(res, f.S)
 
     assert 106 == s.reduce(100, (lambda res, x: res + x))
@@ -157,10 +157,10 @@ def test_set_features():
     assert 6 == s.sum()
 
     res = s + ["a", 1, "b", 3, "c"]
-    assert {1, 2, 3, "a", "b", "c"} == res
+    assert set((1, 2, 3, "a", "b", "c")) == res
     assert isinstance(res, f.S)
 
-    assert {1, 2, 3} == s
+    assert set((1, 2, 3)) == s
 
     # assert {(1, 2), 3} == s.group(2) # todo
 
