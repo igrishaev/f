@@ -69,9 +69,9 @@ def test_pcall_arity_err():
     assert isinstance(err, TypeError)
 
 
-def test_pcall_decorator():
+def test_pcall_wraps():
 
-    safe_div = f.pcall_decorator(div)
+    safe_div = f.pcall_wraps(div)
     assert (None, 2) == safe_div(10, 5)
 
     err, result = safe_div(10, 0)
@@ -79,17 +79,19 @@ def test_pcall_decorator():
     assert isinstance(err, ZeroDivisionError)
 
 
-def test_pcall_decorator_name():
-    safe_div = f.pcall_decorator(div)
+def test_pcall_wraps_name():
+    safe_div = f.pcall_wraps(div)
     assert safe_div.__name__ == div.__name__
 
 
 def test_achain():
-    assert True is f.achain(Rabbit, 'Duck', 'Egg', 'Needle', 'Death', 'on')
+    assert True is f.achain(
+        Rabbit, 'Duck', 'Egg', 'Needle', 'Death', 'on')
 
 
 def test_achain_missed():
-    assert None is f.achain(Rabbit, 'Duck', 'Egg', 'Needle', 'Life', 'on')
+    assert None is f.achain(
+        Rabbit, 'Duck', 'Egg', 'Needle', 'Life', 'on')
 
 
 def test_ichain_ok():

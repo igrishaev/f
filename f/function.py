@@ -5,7 +5,7 @@ import six
 
 __all__ = (
     'pcall',
-    'pcall_decorator',
+    'pcall_wraps',
     'achain',
     'ichain',
     'thread_first',
@@ -24,14 +24,21 @@ range = six.moves.range
 
 
 def pcall(func, *args, **kwargs):
+    """
+    Calls a passed function handling any exceptions.
+
+    Returns either (None, result) or (exc, None) tuple.
+    """
     try:
         return None, func(*args, **kwargs)
     except Exception as e:
         return e, None
 
 
-def pcall_decorator(func):
-
+def pcall_wraps(func):
+    """
+    A decorator that wraps a function with `pcall` logic.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         return pcall(func, *args, **kwargs)
@@ -40,7 +47,10 @@ def pcall_decorator(func):
 
 
 def achain(obj, *attrs):
-
+    """
+    Gets through a chain of attributes
+    handling AttributeError with None value.
+    """
     def get_attr(obj, attr):
         return getattr(obj, attr, None)
 
@@ -48,6 +58,13 @@ def achain(obj, *attrs):
 
 
 def ichain(obj, *items):
+    """
+    Gets through a chain of items
+    handling exceptions with None value.
+
+    Useful for data restored from a JSON string:
+    >>> ichain(data, 'result', 'users', 0, 'address', 'street')
+    """
 
     def get_item(obj, item):
         if obj is None:
@@ -61,7 +78,28 @@ def ichain(obj, *items):
 
 
 def thread_first(value, *forms):
+    """
+    Clojure's first threading macro implementation.
 
+    Passes a value through the forms. Each form is either
+    `func` or `(func, arg2, arg2, ...)`.
+
+    The macro puts a value in the first form as the first argument.
+    The result is put into the second form as the first argument,
+    and so on.
+
+    See https://clojuredocs.org/clojure.core/->
+
+    :param value: Initial value to process.
+    :type value: any
+
+    :param forms: A tuple of forms.
+    :type forms: tuple of func|(func, arg2, arg3, ...)
+
+    :return: A value passed through the all forms.
+    :rtype: any
+
+    """
     def reducer(value, form):
 
         if isinstance(form, (tuple, list)):
@@ -76,6 +114,24 @@ def thread_first(value, *forms):
 
 
 def thread_last(value, *forms):
+    """
+    Clojure's second threading macro implementation.
+
+    The logic is the same as `thread_first`, but puts the value
+    at the end of each form.
+
+    See https://clojuredocs.org/clojure.core/->>
+
+    :param value: Initial value to process.
+    :type value: any
+
+    :param forms: A tuple of forms.
+    :type forms: tuple of func|(func, arg1, arg2, ...)
+
+    :return: A value passed through the all forms.
+    :rtype: any
+
+    """
 
     def reducer(value, form):
 
@@ -91,7 +147,10 @@ def thread_last(value, *forms):
 
 
 def comp(*funcs):
-
+    """
+    Makes a composition of passed functions:
+    >>> comp(f, g, h)(x) <==> h(g(f(x)))
+    """
     def composed(value):
         return thread_first(value, *funcs)
 
@@ -102,7 +161,11 @@ def comp(*funcs):
 
 
 def every_pred(*preds):
-
+    """
+    Makes a super-predicate from the passed ones.
+    A super-predicate is true only if all the child predicates
+    are true. The evaluation is lazy (like bool expressions).
+    """
     def composed(val):
         for pred in preds:
             if not pred(val):
@@ -116,7 +179,27 @@ def every_pred(*preds):
 
 
 def transduce(mfunc, rfunc, coll, init):
+    """
+    A naive try to implement Clojure's transducers.
 
+    See http://clojure.org/reference/transducers
+
+    :param mfunc: A map function to apply to each element.
+    :type mfunc: function
+
+    :param rfunc: A reduce function to reduce the result after map.
+    :type rfunc: function
+
+    :param coll: A collection to process.
+    :type coll: list|tuple|set|dict
+
+    :param init: An initial element for reducing function.
+    :type init: any
+
+    :return: coll ==> map ==> reduce
+    :rtype: any
+
+    """
     def reducer(result, item):
         return rfunc(result, mfunc(item))
 
@@ -124,15 +207,20 @@ def transduce(mfunc, rfunc, coll, init):
 
 
 def nth(n, coll):
+    """
+    Returns an Nth element of a passed collection.
+    Supports iterators without `__getitem__` method.
+    Returns None if no item can be gotten.
+    """
 
-    # try to get by index first
+    # Try to get by index first.
     if hasattr(coll, '__getitem__'):
         try:
             return coll[n]
         except IndexError:
             return None
 
-    # otherwise, try to iterate manualy
+    # Otherwise, try to iterate manually.
     elif hasattr(coll, '__iter__'):
 
         iterator = iter(coll)
@@ -147,6 +235,7 @@ def nth(n, coll):
         return None
 
 
+# Aliases
 first = partial(nth, 0)
 second = partial(nth, 1)
 third = partial(nth, 2)
