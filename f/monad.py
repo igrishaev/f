@@ -185,7 +185,10 @@ def either(pred_l, pred_r):
         if pred_r(x):
             return Right(x)
 
-        raise TypeError("todo")
+        msg = "Value %s doesn't fit %s nor %s predicates."
+        params = (x, pred_l, pred_r)
+
+        raise TypeError(msg % params)
 
     return either_unit
 

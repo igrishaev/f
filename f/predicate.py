@@ -1,12 +1,39 @@
 
 
-
 import operator
 from functools import partial, wraps
 
 import six
 
-# todo __all__
+__all__ = (
+    "p_gt",
+    "p_gte",
+    "p_lt",
+    "p_lte",
+    "p_eq",
+    "p_not_eq",
+    "p_in",
+    "p_is",
+    "p_is_not",
+    "p_and",
+    "p_or",
+
+    "p_str",
+    "p_int",
+    "p_float",
+    "p_num",
+    "p_list",
+    "p_tuple",
+    "p_set",
+    "p_dict",
+    "p_array",
+    "p_coll",
+    "p_truth",
+    "p_none",
+    "p_not_none",
+    "p_even",
+    "p_odd",
+)
 
 #
 # Binary
@@ -14,7 +41,15 @@ import six
 
 
 def _binary(func, b):
+    """
+    A basic form of binary predicate.
 
+    `func` is a two-argument function.
+    `b` is a second argument.
+
+    Returns a function that takes the first argument
+    and returns a bool value.
+    """
     @wraps(func)
     def wrapper(a):
         return func(a, b)
@@ -40,35 +75,23 @@ p_or = partial(_binary, (lambda a, b: a or b))
 #
 
 
-def _unary(func):
-
-    @wraps(func)
-    def predicate(x):
-        return func(x)
-
-    return predicate
-
-
 def _inst(*cls):
-
-    def predicate(x):
-        return isinstance(x, cls)
-
-    return predicate
+    "A local helper to reduce `isinstance` expression."
+    return lambda x: isinstance(x, cls)
 
 
-p_str = _unary(_inst(six.string_types))
-p_int = _unary(_inst(six.integer_types))
-p_float = _unary(_inst(float))
-p_num = _unary(_inst(six.integer_types + (float, )))
-p_list = _unary(_inst(list))
-p_tuple = _unary(_inst(tuple))
-p_set = _unary(_inst(set))
-p_dict = _unary(_inst(dict))
-p_array = _unary(_inst(list, tuple))
-p_coll = _unary(_inst(list, tuple, dict, set))
-p_truth = _unary(lambda x: bool(x) is True)
-p_none = _unary(lambda x: x is None)
-p_not_none = _unary(lambda x: x is not None)
-p_even = _unary(lambda x: x % 2 == 0)
-p_odd = _unary(lambda x: x % 2 != 0)
+p_str = _inst(six.string_types)
+p_int = _inst(six.integer_types)
+p_float = _inst(float)
+p_num = _inst(six.integer_types + (float, ))
+p_list = _inst(list)
+p_tuple = _inst(tuple)
+p_set = _inst(set)
+p_dict = _inst(dict)
+p_array = _inst(list, tuple)
+p_coll = _inst(list, tuple, dict, set)
+p_truth = lambda x: bool(x) is True
+p_none = lambda x: x is None
+p_not_none = lambda x: x is not None
+p_even = lambda x: x % 2 == 0
+p_odd = lambda x: x % 2 != 0
