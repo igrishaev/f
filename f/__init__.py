@@ -1,4 +1,7 @@
 
+__version__ = (0, 0, 1)
+__author__ = "Ivan Grishaev <ivan@grishaev.me>"
+
 from .function import *  # noqa
 from .collection import *  # noqa
 from .monad import *  # noqa
