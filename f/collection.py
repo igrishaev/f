@@ -14,6 +14,9 @@ __all__ = (
 
 
 class Seq(object):
+    """
+    Todo
+    """
 
     def join(self, sep=""):
         return sep.join(self)
@@ -139,9 +142,17 @@ class Seq(object):
 
 
 class LTmixin(object):
+    """
+    List and Tuple features.
+    """
 
     def __getitem__(self, item):
+        """
+        Performs accessing value by index.
 
+        If a slice was passed, turn the result
+        into the current collection type.
+        """
         result = super(LTmixin, self).__getitem__(item)
 
         if isinstance(item, slice):
@@ -149,60 +160,52 @@ class LTmixin(object):
         else:
             return result
 
-        #     return self.__getslice__
-        # else:
-        #     return super(LTmixin, self).__getitem__(item)
-
-    # PY2 only TODO
+    # PY2 only method
     def __getslice__(self, *args):
         result = super(LTmixin, self).__getslice__(*args)
         return self.__class__(result)
 
 
-# todo rename
-class Foo(type):
+class LTSMeta(type):
 
     def __getitem__(cls, args):
+        """
+        Triggers when accessing a collection class by index, e.g:
+        >>> List[1, 2, 3]
+        """
         if isinstance(args, tuple):
             return cls(args)
         else:
             return cls((args, ))
 
 
-@six.add_metaclass(Foo)
+@six.add_metaclass(LTSMeta)
 class LTSmixin(object):
+    """
+    List, Tuple and Set features.
+    """
     pass
 
 
 class List(Seq, LTSmixin, LTmixin, list):
-
-    # def __add__(self, other):
-    #     return self + List(other)
-
     pass
 
 
 class Tuple(Seq, LTSmixin, LTmixin, tuple):
-
-    # def __add__(self, other):
-    #     return self + Tuple(other)
-
     pass
 
 
 class Set(Seq, LTSmixin, set):
-
-    # def __add__(self, other):
-    #     return self | Set(other)
-
-    # __add__ = set.union
-
     pass
 
 
 class DictMeta(type):
 
     def __getitem__(cls, slices):
+        """
+        A nice hack: when you pass a dict body in square braces,
+        you'll receive a tuple if slices.
+        """
 
         if isinstance(slices, tuple):
             slice_tuple = slices
@@ -219,7 +222,9 @@ class DictMeta(type):
 class Dict(Seq, dict):
 
     def __iter__(self):
-
+        """
+        I'd like to iterate a dict by (key, val) pairs.
+        """
         if six.PY2:
             return iter(self.iteritems())
 
@@ -227,11 +232,8 @@ class Dict(Seq, dict):
             return iter(self.items())
 
 
+# Short aliases
 L = List
 T = Tuple
 S = Set
 D = Dict
-
-
-# todo
-# isL
