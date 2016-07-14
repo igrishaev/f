@@ -15,6 +15,7 @@ __all__ = (
     'either_wraps',
     'error',
     'error_wraps',
+    'io',
     'io_wraps',
 )
 

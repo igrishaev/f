@@ -348,7 +348,7 @@ mdiv(4, 0)
 >>> Nothing
 ```
 
-Use `.bind` method as an aliase to `>>`:
+Use `.bind` method as an alias to `>>`:
 
 ```python
 
@@ -434,6 +434,34 @@ EitherStrNum(16) >> (ediv, 0) >> esqrt
 ```
 
 ### IO
+
+This monad wraps a function that does I/O operations. All the further calls
+return monadic instances of the result.
+
+```
+IoPrompt = f.io(lambda prompt: raw_input(prompt))
+IoPrompt("Your name: ")  # prompts for you name, I'll type "Ivan" and RET
+>>> IO[Ivan]
+```
+
+Or use decorator:
+
+```python
+import sys
+
+@f.io_wraps
+def imput(msg):
+    return raw_input(msg)
+
+@f.io_wraps
+def write(text, chan):
+    chan.write(text)
+
+imput("name: ") >> (write, sys.stdout)
+>>> name: Ivan
+>>> Ivan
+>>> IO[None]
+```
 
 ### Error
 
