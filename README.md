@@ -296,20 +296,75 @@ f.L[1, 2, 3, 3, 2, 1].S().T()
 
 ## Monads
 
-Maybe, Either, Error and IO monads are implemented.
+There are Maybe, Either, Error and IO monads are in the library. Most of them
+are based on classical Haskell definitions. The main difference is they use
+predicates instead of type checks.
+
+I had to implement `>>=` operator as `>>` (right binary shift). There is also a
+Python-specific `.get()` method to fetch an actial value from a monadic
+instance. He fair and use it only at the end of the monadic computation!
 
 ### Maybe
 
 ```python
+# Define a monadic constructor
 MaybeInt = f.maybe(f.p_int)
+
 MaybeInt(2)
 >>> Just[2]
+
+MaybeInt("not an int")
+>>> Nothing
+
+# Monadic pipeline
+MaybeInt(2) >> (lambda x: MaybeInt(x + 2))
+>>> Just[4]
+
+# Nothing breakes the pipeline
+MaybeInt(2) >> (lambda x: f.Nothing()) >> (lambda x: MaybeInt(x + 2))
+>>> Nothing
+```
+
+The better way to engage monads into you project is to use monadic decorators:
+
+```python
+@f.maybe_wraps(f.p_num)
+def mdiv(a, b):
+    if b:
+        return a / b
+    else:
+        return None
+
+mdiv(4, 2)
+>>> Just[2]
+
+mdiv(4, 0)
+>>> Nothing
+```
+
+Use `.bind` method as an aliase to `>>`:
+
+```python
+
+MaybeInt(2).bind(lambda x: MaybeInt(x + 1))
+>>> Just[3]
+```
+
+You may pass additional argiments to both `.bind` and `>>` methods:
+
+```python
+MaybeInt(6) >> (mdiv, 2)
+>>> Just[3]
+
+MaybeInt(6).bind(mdiv, 2)
+>>> Just[3]
 ```
 
 ### Either
 
 ### IO
 
+### Error
 
 ## Generics
 
@@ -317,7 +372,7 @@ Generic is a flexible callable object that may have different strategies
 depending on a set of predicates (guards).
 
 ```python
-# create an instance
+# Create an instance
 gen = f.Generic()
 
 # extend it with handlers
