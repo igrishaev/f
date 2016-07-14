@@ -26,8 +26,18 @@ class Monad(object):
     def __init__(self, val):
         self._val = val
 
-    def __rshift__(self, func):
-        return func(self._val)
+    def __rshift__(self, form):
+
+        if isinstance(form, (list, tuple)):
+            func, args = form[0], form[1:]
+        else:
+            func = form
+            args = ()
+
+        return func(self._val, *args)
+
+    def bind(self, *form):
+        return self >> form
 
     def __eq__(self, other):
         """

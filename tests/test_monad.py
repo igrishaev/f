@@ -314,3 +314,22 @@ def test_either_unit():
 
     with pytest.raises(TypeError):
         Either(None)
+
+
+def test_monad_binding():
+
+    unit = f.maybe(f.p_int)
+
+    @f.maybe_wraps(f.p_int)
+    def g(x, y, z):
+        return x + y + z
+
+    assert f.Just(28) == unit(1) >> (g, 2, 3) >> (g, 4, 5) >> (g, 6, 7)
+    assert f.Just(28) == unit(1).bind(g, 2, 3) \
+                                .bind(g, 4, 5).bind(g, 6, 7)
+
+    def h(x):
+        return f.Nothing()
+
+    assert f.Nothing() == unit(1) >> h
+    assert f.Nothing() == unit(None).bind(f)
