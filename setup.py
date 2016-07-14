@@ -1,32 +1,41 @@
 #!/usr/bin/env python
 
-import os
-import sys
+import f
 
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
-    sys.exit()
-
 
 setup(
-    name = 'f',
-    version = 123,
-    description = "test",
-    long_description = "test",
-    author='Ivan Grishaev',
-    author_email='test@test.com',
-    url='todo',
+    name='f',
+    version=".".join(map(str, f.__version__)),
+    description="Functional tools, collections and monads.",
+    author=f.__author__,
+    author_email=f.__email__,
+    url="https://github.com/igrishaev/f",
     packages=['f'],
-    # package_data={'': ['LICENSE', 'README.rst', 'HISTORY.rst']},
     include_package_data=True,
-    install_requires=[],
-    # license=open('LICENSE').read(),
+    install_requires=(
+        'six==1.10.0',
+    ),
+    license=open('LICENSE').read(),
     zip_safe=False,
     classifiers=(
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.1',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Topic :: Programming Paradigms :: Functional Programming',
     ),
 )

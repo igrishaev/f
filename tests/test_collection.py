@@ -223,4 +223,4 @@ def test_complex():
     assert f.L[1, 2, 3].map(str).Tuple() == f.T["1", "2", "3"]
     assert f.L[1, 2, 3][:-1].map(str) == f.L["1", "2"]
 
-    assert set(f.D(bar=2, foo=1)) == {("foo", 1), ("bar", 2)}
+    assert set(f.D(bar=2, foo=1)) == set((("foo", 1), ("bar", 2)))

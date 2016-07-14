@@ -187,7 +187,7 @@ def maybe(pred):
             return Just(x)
 
         else:
-            return Nothing()
+            return Nothing(x)
 
     return maybe_unit
 
