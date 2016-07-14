@@ -4,3 +4,4 @@
 *.egg-info
 dist
 README.html
+build

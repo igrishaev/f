@@ -8,8 +8,11 @@ pep:
 clean:
 	find . -name "*.pyc" -delete
 
+build:
+	python setup.py bdist_wheel --universal
+
 register:
 	python setup.py register -r pypi
 
 upload:
-	python setup.py sdist upload -r pypi
+	python setup.py bdist_wheel --universal upload -r pypi

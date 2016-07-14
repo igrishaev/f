@@ -17,9 +17,9 @@ setup(
     url="https://github.com/igrishaev/f",
     packages=['f'],
     include_package_data=True,
-    install_requires=(
-        'six==1.10.0',
-    ),
+    install_requires=[
+        'Six',
+    ],
     license=open('LICENSE').read(),
     zip_safe=False,
     classifiers=(
