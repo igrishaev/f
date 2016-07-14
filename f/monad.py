@@ -39,6 +39,9 @@ class Just(object):
         """
         return isinstance(other, Just) and self.__val == other.__val
 
+    def __repr__(self):
+        return "%s[%s]" % (self.__class__.__name__, self.__val)
+
     def get(self):
         return self.__val
 
@@ -61,6 +64,9 @@ class Nothing(object):
         """
         return isinstance(other, Nothing)
 
+    def __repr__(self):
+        return self.__class__.__name__
+
     def get(self):
         return None
 
@@ -80,6 +86,9 @@ class Left(object):
 
     def __eq__(self, other):
         return isinstance(other, Left) and self.__val == other.__val
+
+    def __repr__(self):
+        return "%s[%s]" % (self.__class__.__name__, self.__val)
 
     def get(self):
         return self.__val
@@ -101,6 +110,9 @@ class Right(object):
     def __eq__(self, other):
         return isinstance(other, Right) and self.__val == other.__val
 
+    def __repr__(self):
+        return "%s[%s]" % (self.__class__.__name__, self.__val)
+
     def get(self):
         return self.__val
 
@@ -121,6 +133,12 @@ class Success(object):
     def get(self):
         return self.__val
 
+    def __eq__(self, other):
+        return isinstance(other, Success) and self.__val == other.__val
+
+    def __repr__(self):
+        return "%s[%s]" % (self.__class__.__name__, self.__val)
+
     def recover(self, exc_class, val_or_func):
         """
         Does nothing, returning the current monadic value.
@@ -140,6 +158,9 @@ class Failture(object):
 
     def __rshift__(self, func):
         return self
+
+    def __repr__(self):
+        return "%s[%s]" % (self.__class__.__name__, self.__val)
 
     def get(self):
         raise self.__val
@@ -200,6 +221,10 @@ class IO(object):
 
     def get(self):
         return self.__val
+
+    # todo move to common class
+    def __repr__(self):
+        return "%s[%s]" % (self.__class__.__name__, self.__val)
 
 
 def maybe(pred):
@@ -311,7 +336,7 @@ def either_wraps(pred_l, pred_r):
     return decorator
 
 
-def error(func, *args, **kwargs):
+def error(func):
     """
     Error constructor.
 
@@ -333,28 +358,19 @@ def error(func, *args, **kwargs):
 
     """
 
-    try:
-        return Success(func(*args, **kwargs))
-    except Exception as e:
-        return Failture(e)
-    except:
-        _, e_val, _ = sys.exc_info()
-        return Failture(e_val)
+    def error_unit(*args, **kwargs):
+        try:
+            return Success(func(*args, **kwargs))
+        except Exception as e:
+            return Failture(e)
+
+    return error_unit
 
 
-def error_wraps(func):
-    """
-    Decorator that wraps a function with Error behaviour.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return error(func, *args, **kwargs)
-
-    return wrapper
+error_wraps = error
 
 
-def io_wraps(func):
+def io(func):
     """
     Decorator that wraps a function with IO behaviour.
     """
@@ -364,3 +380,6 @@ def io_wraps(func):
         return IO(func(*args, **kwargs))
 
     return wrapper
+
+
+io_wraps = io

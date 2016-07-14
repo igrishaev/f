@@ -13,6 +13,7 @@ __all__ = (
 )
 
 range = six.moves.range
+filter = six.moves.filter
 
 
 class SeqMixin(object):

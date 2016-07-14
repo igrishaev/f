@@ -27,7 +27,6 @@ def msqrt(a):
         return None
 
 
-
 @f.either_wraps(f.p_str, f.p_num)
 def ediv(a, b):
     if b == 0:
@@ -54,21 +53,31 @@ def tsqrt(a):
     return math.sqrt(a)
 
 
-@pytest.mark.parametrize("x", (2, "error"))
-def test_maybe_laws(x):
+@pytest.mark.parametrize("x,val", (
+    (2, f.Just),
+    (2.0, f.Just),
+    (-2, f.Nothing),
+))
+def test_maybe_laws(x, val):
 
-    p = f.p_int
+    p = f.p_num
     unit = f.maybe(p)
 
     @f.maybe_wraps(p)
     def g(x):
-        return x * 2
+        if x > 0:
+            return x * 2
+        else:
+            return None
 
-    @f.maybe_wraps(f.p_int)
+    @f.maybe_wraps(p)
     def h(x):
-        return x + 2
+        if x > 0:
+            return x + 2
+        else:
+            return None
 
-    # todo: test Nothing
+    assert isinstance(g(x), val)
 
     # 1
     assert unit(x) >> g == g(x)
@@ -83,15 +92,12 @@ def test_maybe_laws(x):
 
 def test_maybe():
 
-    def resolve(x):
-        return x
-
     unit = f.maybe(f.p_int)
 
     m = unit(42)
     assert isinstance(m, f.Just)
 
-    # assert 42 == m >> resolve
+    assert 42 == m.get()
 
     m = unit(None)
     assert isinstance(m, f.Nothing)
@@ -101,12 +107,11 @@ def test_maybe():
 
     m = mdiv(16, 4.0) >> msqrt
     assert isinstance(m, f.Just)
-    assert 2 == m >> resolve
+    assert 2 == m.get()
 
-    # todo
-    # m = mdiv(16, 0) >> msqrt
-    # assert isinstance(m, f.Nothing)
-    # assert None is (m >> resolve)
+    m = mdiv(16, 0) >> msqrt
+    assert isinstance(m, f.Nothing)
+    assert None is m.get()
 
     m = mdiv(16, -4) >> msqrt
     assert isinstance(m, f.Nothing)
@@ -137,8 +142,12 @@ def test_either():
     # assert "Div by zero: 16 / 0" == m.get()
 
 
-@pytest.mark.parametrize("x", (2, -3))
-def test_either_laws(x):
+@pytest.mark.parametrize("x,val", (
+    (2, f.Right),
+    (2.0, f.Right),
+    (-2, f.Left),
+))
+def test_either_laws(x,val):
 
     p = (f.p_str, f.p_num)
     unit = f.either(*p)
@@ -157,7 +166,8 @@ def test_either_laws(x):
         else:
             return "less the zero2"
 
-    # import ipdb; ipdb.set_trace()
+    assert isinstance(g(x), val)
+
     # 1
     assert unit(x) >> g == g(x)
 
@@ -171,12 +181,14 @@ def test_either_laws(x):
 
 def test_error():
 
-    m = f.error((lambda a, b: a / b), 16, b=4)
+    unit = f.error(lambda a, b: a / b)
+
+    m = unit(16, b=4)
     assert isinstance(m, f.Success)
 
     assert 4 == m.get()
 
-    m = f.error((lambda a, b: a / b), 16, b=0)
+    m = unit(16, b=0)
     assert isinstance(m, f.Failture)
 
     with pytest.raises(ZeroDivisionError):
@@ -185,8 +197,9 @@ def test_error():
 
 def test_failture():
 
-    m = f.error(lambda: 1 / 0)
+    unit = f.error(lambda: 1 / 0)
 
+    m = unit()
     res = m.recover(ZeroDivisionError, 0)
     assert isinstance(res, f.Success)
 
@@ -199,24 +212,11 @@ def test_failture():
     assert isinstance(res, f.Failture)
 
 
-def test_generic_exc():
-
-    import socket
-
-    def raiser():
-        raise socket.error('old-style-exc')
-
-    m = f.error(raiser)
-    assert isinstance(m, f.Failture)
-
-    res = m.recover(socket.error, 42)
-    assert isinstance(res, f.Success)
-
-
 def test_failture_recover_multi():
 
-    m = f.error(lambda: 1 / 0)
+    unit = f.error(lambda: 1 / 0)
 
+    m = unit()
     res = m \
         .recover(MemoryError, 1) \
         .recover(TypeError, 2) \
@@ -234,7 +234,8 @@ def test_failture_recover_multi():
 
 def test_success_recover():
 
-    m = f.error(lambda: 1).recover(Exception, 0)
+    unit = f.error(lambda: 1)
+    m = unit().recover(Exception, 0)
     assert isinstance(m, f.Success)
     assert 1 == m.get()
 
@@ -256,24 +257,22 @@ def test_try_decorator():
         m.get()
 
 
-# todo
-def __test_io(monkeypatch, capsys):
+def test_io(monkeypatch, capsys):
 
     if six.PY2:
         path = '__builtin__.raw_input'
-        func = __builtin__.raw_input
 
     if six.PY3:
-        import builtins
         path = 'builtins.input'
-        func = builtins.input
-
 
     monkeypatch.setattr(path, lambda prompt: "hello")
 
     @f.io_wraps
     def read_line(prompt):
-        return func(prompt)
+        if six.PY2:
+            return raw_input("say: ")
+        if six.PY3:
+            return input("say: ")
 
     @f.io_wraps
     def write_line(text):

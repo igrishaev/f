@@ -90,8 +90,23 @@ p_set = _inst(set)
 p_dict = _inst(dict)
 p_array = _inst(list, tuple)
 p_coll = _inst(list, tuple, dict, set)
-p_truth = lambda x: bool(x) is True
-p_none = lambda x: x is None
-p_not_none = lambda x: x is not None
-p_even = lambda x: x % 2 == 0
-p_odd = lambda x: x % 2 != 0
+
+
+def p_truth(x):
+    return bool(x) is True
+
+
+def p_none(x):
+    return x is None
+
+
+def p_not_none(x):
+    return x is not None
+
+
+def p_even(x):
+    return x % 2 == 0
+
+
+def p_odd(x):
+    return x % 2 != 0

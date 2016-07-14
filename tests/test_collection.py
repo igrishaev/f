@@ -35,8 +35,8 @@ def test_list():
     assert l2 == [2]
     assert isinstance(l2, f.L)
 
-    # todo
     assert l1.reduce(1, (lambda a, b: a + b)) == 7
+    assert f.L[1, 2, 3].reduce((), (lambda res, x: res + (x, ))) == (1, 2, 3)
 
     assert l1.sum() == 6
 
@@ -162,8 +162,6 @@ def test_set_features():
 
     assert set((1, 2, 3)) == s
 
-    # assert {(1, 2), 3} == s.group(2) # todo
-
 
 def test_dict_features():
 
@@ -174,7 +172,14 @@ def test_dict_features():
     assert res == dict(a=1, b=2, c=3, d=4, e=5, f=5)
     assert isinstance(res, f.D)
 
-    # todo
+    def my_filter(pair):
+        key, val = pair
+        return key == 1 and val == 1
+
+    d = f.D[2: 3, 3: 1, 1: 1]
+    d2 = d.filter(my_filter)
+    assert d2 == {1: 1}
+    assert isinstance(d2, f.D)
 
 
 def test_dict_constructor():
@@ -195,48 +200,27 @@ def test_dict_constructor():
 
 
 def test_dict_iter():
-    # todo
-    pass
+    assert list(f.D[1: 2]) == [(1, 2)]
 
 
 def test_complex():
-    # todo
-    pass
+    origin = f.L[4, 3, 2, 1]
 
+    def pred(pair):
+        k, v = pair
+        return k == "1" and v == "2"
 
-# def test_unicode():
+    res = origin.map(str).Tuple().reversed() \
+                .group(2).Dict().filter(pred)
 
-#     u = f.U(u"test")
-#     assert u == u"test"
+    assert res == {"1": "2"}
+    assert isinstance(res, f.D)
 
-#     # res = u.join('-')
-#     # assert res == u"t-e-s-t"
-#     # assert isinstance(res, f.Unicode)
+    assert origin == [4, 3, 2, 1]
 
-#     res = u.map(unicode.upper)
-#     print res
+    assert "99-98-97" == f.L("abc").map(ord).map(str).reversed().join("-")
 
-# tests
+    assert f.L[1, 2, 3].map(str).Tuple() == f.T["1", "2", "3"]
+    assert f.L[1, 2, 3][:-1].map(str) == f.L["1", "2"]
 
-# assert List[1, 2, 3] + (4, 5, 6) == List[1, 2, 3, 4, 5, 6]
-# assert List[1, 2, 3].Tuple() == Tuple[1, 2, 3]
-# assert List[1, 2, 3].map(str).Tuple() == Tuple["1", "2", "3"]
-# assert List[1, 2, 3].apply(lambda *args: sum(args)) == 6
-# assert List[1, 2, 3].reduce(0, (lambda res, x: res + x)) == 6
-# assert List[1, 2, 3].reduce((), (lambda res, x: res + (x, ))) == (1, 2, 3)
-
-# assert str(List[1, 2, 3]) == "List[1, 2, 3]"
-# # assert unicode(List[1, 2, 3]) == u"List[1, 2, 3]"
-
-# assert Tuple[1, 2, 3] == (1, 2, 3)
-# assert Tuple() == ()
-# assert List[1, 2, 3][:-1].map(str) == List["1", "2"]
-# assert Set[1, 2, 3] == {1, 2, 3}
-# # assert Dict[1, 2, 3, 4] == {1: 2, 3: 4}
-# assert Dict(foo=1, bar=2)["foo"] == 1
-# assert Dict(foo=1, bar=2)["foo", "bar"] == [1, 2]
-# assert set(iter(Dict(bar=2, foo=1))) == {("foo", 1), ("bar", 2)}
-
-# print List("abc").map(ord).map(str).reversed().join("-")
-
-# print Str("abc").map(ord)
+    assert set(f.D(bar=2, foo=1)) == {("foo", 1), ("bar", 2)}
