@@ -1,5 +1,5 @@
 
-# `f` library is a set of functional tools for Python
+# `f` is a set of functional tools for Python
 
 ## Functions
 
@@ -8,7 +8,6 @@ A bunch of useful functions to work with data structures.
 ### Protected call (comes from Lua):
 
 ```python
-
 import f
 
 f.pcall(lambda a, b: a / b, 4, 2)
@@ -16,8 +15,15 @@ f.pcall(lambda a, b: a / b, 4, 2)
 
 f.pcall(lambda a, b: a / b, 4, 0)
 >>> (ZeroDivisionError('integer division or modulo by zero'), None)
+```
 
-func = f.pcall_wraps(lambda a, b: a / b)
+Or use it like a decorator:
+
+```python
+
+@f.pcall_wraps
+def func(a, b):
+    return a / b
 
 func(4, 2)
 >>> (None, 2)
@@ -277,7 +283,7 @@ f.D(a=1, b=2, c=3) + {"d": 4, "e": 5, "f": 5}
 >>> Dict{'a': 1, 'c': 3, 'b': 2, 'e': 5, 'd': 4, 'f': 5}
 
 f.S[1, 2, 3] + ["a", 1, "b", 3, "c"]
->>> Set(['a', 1, 2, 3, 'c', 'b'])
+>>> Set{'a', 1, 2, 3, 'c', 'b'}
 
 # addeing list with tuple
 f.L[1, 2, 3] + (4, )
@@ -302,7 +308,7 @@ predicates instead of type checks.
 
 I had to implement `>>=` operator as `>>` (right binary shift). There is also a
 Python-specific `.get()` method to fetch an actial value from a monadic
-instance. He fair and use it only at the end of the monadic computation!
+instance. Be fair and use it only at the end of the monadic computation!
 
 ### Maybe
 
@@ -360,7 +366,72 @@ MaybeInt(6).bind(mdiv, 2)
 >>> Just[3]
 ```
 
+Release the final value:
+
+```python
+m = MaybeInt(2) >> (lambda x: MaybeInt(x + 2))
+m.get()
+>>> 3
+```
+
 ### Either
+
+This monad presents two possible values: Left (negative) and Right
+(positive).
+
+```python
+# create a constructor based on left and right predicates.
+EitherStrNum = f.either(f.p_str, f.p_num)
+
+EitherStrNum("error")
+>>> Left[error]
+
+EitherStrNum(42)
+>>> Right[42]
+```
+
+Right value follows the pipeline, but Left breakes it.
+
+```python
+EitherStrNum(1) >> (lambda x: EitherStrNum(x + 1))
+>>> Right[2]
+
+EitherStrNum(1) >> (lambda x: EitherStrNum("error")) >> (lambda x: EitherStrNum(x + 1))
+>>> Left[error]
+```
+
+When the plain value does not fit both predicates, `TypeError` occures:
+
+```python
+EitherStrNum(None)
+>>> TypeError: Value None doesn't fit...
+```
+
+Use decorator to wrap an existing function with Either logic:
+
+```python
+@f.either_wraps(f.p_str, f.p_num)
+def ediv(a, b):
+    if b == 0:
+        return "Div by zero: %s / %s" % (a, b)
+    else:
+        return a / b
+
+
+@f.either_wraps(f.p_str, f.p_num)
+def esqrt(a):
+    if a < 0:
+        return "Negative number: %s" % a
+    else:
+        return math.sqrt(a)
+
+
+EitherStrNum(16) >> (ediv, 4) >> esqrt
+>>> Right[2.0]
+
+EitherStrNum(16) >> (ediv, 0) >> esqrt
+>>> Left[Div by zero: 16 / 0]
+```
 
 ### IO
 
