@@ -1,5 +1,4 @@
 
-import sys
 from functools import wraps
 
 __all__ = (
@@ -20,36 +19,39 @@ __all__ = (
 )
 
 
-class Just(object):
-    """
-    Represents a positive Maybe value.
-    """
+class Monad(object):
 
-    __slots__ = ('__val', )
+    __slots__ = ('_val', )
 
     def __init__(self, val):
-        self.__val = val
+        self._val = val
 
     def __rshift__(self, func):
-        return func(self.__val)
+        return func(self._val)
 
     def __eq__(self, other):
         """
-        Compares two Just values by their content.
+        Compares two monadic values by their type and content.
         """
-        return isinstance(other, Just) and self.__val == other.__val
+        return (
+            type(self) == type(other)
+            and self._val == other._val
+        )
 
     def __repr__(self):
-        return "%s[%s]" % (self.__class__.__name__, self.__val)
+        return "%s[%s]" % (self.__class__.__name__, self._val)
 
     def get(self):
-        return self.__val
+        return self._val
 
 
-class Nothing(object):
+class Nothing(Monad):
     """
     Represents a negative Maybe value.
     """
+
+    def __init__(self, val=None):
+        return super(Nothing, self).__init__(val)
 
     def __rshift__(self, func):
         """
@@ -58,86 +60,37 @@ class Nothing(object):
         """
         return self
 
-    def __eq__(self, other):
-        """
-        All the `Nothing` values are equal to each other.
-        """
-        return isinstance(other, Nothing)
-
-    def __repr__(self):
-        return self.__class__.__name__
-
     def get(self):
         return None
 
 
-class Left(object):
+class Just(Monad):
+    """
+    Represents a positive Maybe value.
+    """
+    pass
+
+
+class Left(Monad):
     """
     Represents a negative Either value.
     """
 
-    __slots__ = ('__val', )
-
-    def __init__(self, val):
-        self.__val = val
-
     def __rshift__(self, func):
         return self
 
-    def __eq__(self, other):
-        return isinstance(other, Left) and self.__val == other.__val
 
-    def __repr__(self):
-        return "%s[%s]" % (self.__class__.__name__, self.__val)
-
-    def get(self):
-        return self.__val
-
-
-class Right(object):
+class Right(Monad):
     """
     Represents a positive Either value.
     """
-
-    __slots__ = ('__val', )
-
-    def __init__(self, val):
-        self.__val = val
-
-    def __rshift__(self, func):
-        return func(self.__val)
-
-    def __eq__(self, other):
-        return isinstance(other, Right) and self.__val == other.__val
-
-    def __repr__(self):
-        return "%s[%s]" % (self.__class__.__name__, self.__val)
-
-    def get(self):
-        return self.__val
+    pass
 
 
-class Success(object):
+class Success(Monad):
     """
     Represents a positive Error value.
     """
-
-    __slots__ = ('__val', )
-
-    def __init__(self, val):
-        self.__val = val
-
-    def __rshift__(self, func):
-        return func(self.__val)
-
-    def get(self):
-        return self.__val
-
-    def __eq__(self, other):
-        return isinstance(other, Success) and self.__val == other.__val
-
-    def __repr__(self):
-        return "%s[%s]" % (self.__class__.__name__, self.__val)
 
     def recover(self, exc_class, val_or_func):
         """
@@ -146,24 +99,16 @@ class Success(object):
         return self
 
 
-class Failture(object):
+class Failture(Monad):
     """
     Represents a negative Error value.
     """
 
-    __slots__ = ('__val', )
-
-    def __init__(self, val):
-        self.__val = val
-
     def __rshift__(self, func):
         return self
 
-    def __repr__(self):
-        return "%s[%s]" % (self.__class__.__name__, self.__val)
-
     def get(self):
-        raise self.__val
+        raise self._val
 
     def recover(self, exc_class, val_or_func):
         """
@@ -186,7 +131,7 @@ class Failture(object):
 
         """
 
-        e = self.__val
+        e = self._val
 
         def is_callable(val):
             return hasattr(val_or_func, '__call__')
@@ -206,25 +151,11 @@ class Failture(object):
             return self
 
 
-class IO(object):
+class IO(Monad):
     """
     Represents IO value.
     """
-
-    __slots__ = ('__val', )
-
-    def __init__(self, val):
-        self.__val = val
-
-    def __rshift__(self, func):
-        return func(self.__val)
-
-    def get(self):
-        return self.__val
-
-    # todo move to common class
-    def __repr__(self):
-        return "%s[%s]" % (self.__class__.__name__, self.__val)
+    pass
 
 
 def maybe(pred):

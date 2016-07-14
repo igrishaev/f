@@ -147,7 +147,7 @@ def test_either():
     (2.0, f.Right),
     (-2, f.Left),
 ))
-def test_either_laws(x,val):
+def test_either_laws(x, val):
 
     p = (f.p_str, f.p_num)
     unit = f.either(*p)
