@@ -251,8 +251,7 @@ class DictMeta(type):
 
     def __getitem__(cls, slices):
         """
-        A nice hack: when you pass a dict body in square braces,
-        you'll receive a tuple if slices.
+        Builds a dict having a tuple of slices.
         """
 
         if isinstance(slices, tuple):
@@ -271,7 +270,7 @@ class Dict(SeqMixin, dict):
 
     def __iter__(self):
         """
-        I'd like to iterate a dict by (key, val) pairs.
+        Iterates a dict by (key, val) pairs.
         """
         if six.PY2:
             return iter(self.iteritems())
