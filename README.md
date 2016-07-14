@@ -1,11 +1,11 @@
 
-### `f` library is a set of functional tools for Python
+# `f` library is a set of functional tools for Python
 
-#### Functions
+## Functions
 
 A bunch of useful functions to work with data structures.
 
-- Protected call (comes from Lua):
+### Protected call (comes from Lua):
 
 ```python
 
@@ -27,7 +27,7 @@ func(4, 0)
 
 ```
 
-- Attribute and item chain functions handling exceptions:
+### Attribute and item chain functions handling exceptions:
 
 ```python
 # let's say, you have a schema with the following foreign keys:
@@ -56,7 +56,7 @@ f.ichain(data, 'result', 42, 'kids', 0, 'age')
 >> None
 ```
 
-- Threading functions came from Clojure
+### Threading functions from Clojure
 
 The first threading macro puts the value into an each form as a first
 argument to a function:
@@ -85,7 +85,7 @@ f.arr2(
 >>> "444"
 ```
 
-- Function composition:
+### Function composition:
 
 ```python
 comp = f.comp(abs, (lambda x: x * 2), str)
@@ -93,7 +93,7 @@ comp(-42)
 >>> "84"
 ```
 
-- Every predicate
+### Every predicate
 
 Composes a super predicate from the passed ones:
 
@@ -109,21 +109,120 @@ tuple(result)
 >>> (2, 4, 2)
 ```
 
-- Transducer:
+### Transducer: a quick-and-dirty port from Clojure
 
-
-
-### Predicates
-
-### Collections
-
-Improved collections `List`, `Typle`, `Dict` and `Set` with the
-following features:
-
-- Square braces syntax for initiating:
-
+```python
+f.transduce(
+    (lambda x: x + 1),
+    (lambda res, item: res + str(item)),
+    (1, 2, 3),
+    ""
+)
+>>> "234"
 ```
-f.L[1, 2, 3]  # or f.List
+
+### Nth element getters
+
+```python
+f.first((1, 2, 3))
+>>> 1
+
+f.second((1, 2, 3))
+>>> 2
+
+f.third((1, 2, 3))
+>>> 3
+
+f.nth(0, [1, 2, 3])
+>>> 1
+
+f.nth(9, [1, 2, 3])
+>>> None
+```
+
+## Predicates
+
+A set of unary and binary predicates.
+
+Unary example:
+
+```python
+f.p_str("test")
+>>> True
+
+f.p_str(0)
+>>> False
+
+f.p_str(u"test")
+>>> True
+
+# checks for both int and float types
+f.p_num(1), f.p_num(1.0)
+>>> True, True
+
+f.p_list([])
+>>> True
+
+f.p_truth(1)
+>>> True
+
+f.p_truth(None)
+>>> False
+
+f.p_none(None)
+>>> True
+```
+
+Binary example:
+
+```python
+p = f.p_gt(0)
+
+p(1), p(100), p(0), p(-1)
+>>> True, True, False, False
+
+p = f.p_gte(0)
+p(0), p(1), p(-1)
+>>> True, True, False
+
+p = f.p_eq(42)
+p(42), p(False)
+>>> True, False
+
+ob1 = object()
+p = f.p_is(ob1)
+p(object())
+>>> False
+p(ob1)
+>>> True
+
+p = f.p_in((1, 2, 3))
+p(1), p(3)
+>>> True, True
+p(4)
+>>> False
+```
+
+You may combine predicates with `f.comp` or `f.every_pred`:
+
+```python
+# checks for positive even number
+pred = f.every_pred(f.p_num, f.p_even, f.p_gt(0))
+pred(None), pred(-1), pred(5)
+>>> False, False, False
+pred(6)
+>>> True
+```
+
+## Collections
+
+Improved collections `List`, `Typle`, `Dict` and `Set` with the following
+features.
+
+### Square braces syntax for initiating
+
+```python
+f.List[1, 2, 3]     # or just f.L
 >>> List[1, 2, 3]
 
 f.T[1, 2, 3]
@@ -136,51 +235,48 @@ f.D[1: 2, 2: 3]
 >>> Dict{1: 2, 2: 3}
 ```
 
-- additional methods such as .map, .filter, reduce, .sorted, .foreach,
-  .sum, etc:
+### Additional methods such as .map, .filter, .foreach, .sum, etc:
 
-    l1 = f.L[1, 2, 3]
-    assert l1.map(str).join("-") == "1-2-3"
+```python
 
-    todo
+l1 = f.L[1, 2, 3]
+assert l1.map(str).join("-") == "1-2-3"
+```
 
-- every method returns a new collection of this type:
-
-  todo
-
-- easy adding two collection of different types:
+### Cevery method returns a new collection of this type:
 
   todo
 
-- quick turning to another collection:
+### Easy adding two collection of different types
+
+  todo
+
+### Quick turning to another collection
 
   todo
 
 
-### Monads
+## Monads
 
 Maybe, Either, Error and IO monads are implemented.
 
-#### Maybe
+### Maybe
 
+```python
 MaybeInt = f.maybe(f.p_int)
 MaybeInt(2)
 >>> Just[2]
+```
 
-todo
+### Either
 
-
-#### Either
-
-
-#### IO
+### IO
 
 
+## Generics
 
-### Generics
-
-Generic as a flexible callable object that may have different
-strategies depending on a set of predicates (guards).
+Generic is a flexible callable object that may have different strategies
+depending on a set of predicates (guards).
 
 ```python
 # create an instance
