@@ -17,6 +17,7 @@ __all__ = (
     "p_is_not",
     "p_and",
     "p_or",
+    "p_inst",
 
     "p_str",
     "p_int",
@@ -68,28 +69,22 @@ p_is = partial(_binary, operator.is_)
 p_is_not = partial(_binary, operator.is_not)
 p_and = partial(_binary, (lambda a, b: a and b))
 p_or = partial(_binary, (lambda a, b: a or b))
-
+p_inst = partial(_binary, isinstance)
 
 #
 # Unary
 #
 
-
-def _inst(*cls):
-    "A local helper to reduce `isinstance` expression."
-    return lambda x: isinstance(x, cls)
-
-
-p_str = _inst(six.string_types)
-p_int = _inst(six.integer_types)
-p_float = _inst(float)
-p_num = _inst(six.integer_types + (float, ))
-p_list = _inst(list)
-p_tuple = _inst(tuple)
-p_set = _inst(set)
-p_dict = _inst(dict)
-p_array = _inst(list, tuple)
-p_coll = _inst(list, tuple, dict, set)
+p_str = p_inst(six.string_types)
+p_int = p_inst(six.integer_types)
+p_float = p_inst(float)
+p_num = p_inst(six.integer_types + (float, ))
+p_list = p_inst(list)
+p_tuple = p_inst(tuple)
+p_set = p_inst(set)
+p_dict = p_inst(dict)
+p_array = p_inst((list, tuple))
+p_coll = p_inst((list, tuple, dict, set))
 
 
 def p_truth(x):

@@ -30,7 +30,7 @@ func(4, 0)
 - Attribute and item chain functions handling exceptions:
 
 ```python
-# let's say, you have model schema with the following foreign keys:
+# let's say, you have a schema with the following foreign keys:
 # Order --> Office --> Department --> Chief
 
 order = Order.objects.get(id=42)
@@ -39,7 +39,7 @@ order = Order.objects.get(id=42)
 f.achain(model, 'office', 'department', 'chief', 'name')
 >>> John
 
-# Now imagine the `department` field is nullable ans has NULL in the DB:
+# Now imagine the `department` field is nullable and has NULL in the DB:
 f.achain(model, 'office', 'department', 'chief', 'name')
 >>> None
 ```
