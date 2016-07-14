@@ -1,4 +1,3 @@
-
 # `f` is a set of functional tools for Python
 
 ## Functions
@@ -45,7 +44,7 @@ order = Order.objects.get(id=42)
 f.achain(model, 'office', 'department', 'chief', 'name')
 >>> John
 
-# Now imagine the `department` field is nullable and has NULL in the DB:
+# Now imagine the `department` field is null-able and has NULL in the DB:
 f.achain(model, 'office', 'department', 'chief', 'name')
 >>> None
 ```
@@ -222,7 +221,7 @@ pred(6)
 
 ## Collections
 
-Improved collections `List`, `Typle`, `Dict` and `Set` with the following
+Improved collections `List`, `Tuple`, `Dict` and `Set` with the following
 features.
 
 ### Square braces syntax for initiating
@@ -285,7 +284,7 @@ f.D(a=1, b=2, c=3) + {"d": 4, "e": 5, "f": 5}
 f.S[1, 2, 3] + ["a", 1, "b", 3, "c"]
 >>> Set{'a', 1, 2, 3, 'c', 'b'}
 
-# addeing list with tuple
+# adding list with tuple
 f.L[1, 2, 3] + (4, )
 List[1, 2, 3, 4]
 ```
@@ -307,7 +306,7 @@ are based on classical Haskell definitions. The main difference is they use
 predicates instead of type checks.
 
 I had to implement `>>=` operator as `>>` (right binary shift). There is also a
-Python-specific `.get()` method to fetch an actial value from a monadic
+Python-specific `.get()` method to fetch an actual value from a monadic
 instance. Be fair and use it only at the end of the monadic computation!
 
 ### Maybe
@@ -326,7 +325,7 @@ MaybeInt("not an int")
 MaybeInt(2) >> (lambda x: MaybeInt(x + 2))
 >>> Just[4]
 
-# Nothing breakes the pipeline
+# Nothing breaks the pipeline
 MaybeInt(2) >> (lambda x: f.Nothing()) >> (lambda x: MaybeInt(x + 2))
 >>> Nothing
 ```
@@ -356,7 +355,7 @@ MaybeInt(2).bind(lambda x: MaybeInt(x + 1))
 >>> Just[3]
 ```
 
-You may pass additional argiments to both `.bind` and `>>` methods:
+You may pass additional arguments to both `.bind` and `>>` methods:
 
 ```python
 MaybeInt(6) >> (mdiv, 2)
@@ -390,7 +389,7 @@ EitherStrNum(42)
 >>> Right[42]
 ```
 
-Right value follows the pipeline, but Left breakes it.
+Right value follows the pipeline, but Left breaks it.
 
 ```python
 EitherStrNum(1) >> (lambda x: EitherStrNum(x + 1))
@@ -400,7 +399,7 @@ EitherStrNum(1) >> (lambda x: EitherStrNum("error")) >> (lambda x: EitherStrNum(
 >>> Left[error]
 ```
 
-When the plain value does not fit both predicates, `TypeError` occures:
+When the plain value does not fit both predicates, `TypeError` occurs:
 
 ```python
 EitherStrNum(None)
@@ -450,20 +449,78 @@ Or use decorator:
 import sys
 
 @f.io_wraps
-def imput(msg):
+def input(msg):
     return raw_input(msg)
 
 @f.io_wraps
 def write(text, chan):
     chan.write(text)
 
-imput("name: ") >> (write, sys.stdout)
+input("name: ") >> (write, sys.stdout)
 >>> name: Ivan
 >>> Ivan
 >>> IO[None]
 ```
 
 ### Error
+
+Error monad also known as `Try` in Scala is to prevent rising
+exceptions. Instead, it provides `Success` sub-class to wrap positive result and
+`Failture` to wrap an occured exception.
+
+```
+Error = f.error(lambda a, b: a / b)
+
+Error(4, 2)
+>>> Success[2]
+
+Error(4, 0)
+>>> Failture[integer division or modulo by zero]
+```
+
+Getting a value from `Failture` with `.get` method will re-rise it. Use
+`.recover` method to deal with exception in a safe way.
+
+```python
+Error(4, 0).get()
+ZeroDivisionError: integer division or modulo by zero
+
+# value variant
+Error(4, 0).recover(ZeroDivisionError, 42)
+Success[2]
+```
+
+You may pass a tuple of exception classes. A value might be a function that
+takes a exception instance and returns a proper value:
+
+```python
+
+def handler(e):
+    logger.exception(e)
+    return 0
+
+Error(4, 0).recover((ZeroDivisionError, TypeError), handler)
+>>> Success[0]
+```
+
+Decorator variant:
+
+```python
+@f.error_wraps
+def tdiv(a, b):
+    return a / b
+
+
+@f.error_wraps
+def tsqrt(a):
+    return math.sqrt(a)
+
+tdiv(16, 4) >> tsqrt
+>>> Success[2.0]
+
+tsqrt(16).bind(tdiv, 2)
+>>> Success[2.0]
+```
 
 ## Generics
 
