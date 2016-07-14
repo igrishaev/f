@@ -50,8 +50,8 @@ class Nothing(Monad):
     Represents a negative Maybe value.
     """
 
-    def __init__(self, val=None):
-        return super(Nothing, self).__init__(val)
+    def __init__(self):
+        pass
 
     def __rshift__(self, func):
         """
@@ -59,6 +59,12 @@ class Nothing(Monad):
         a passed function.
         """
         return self
+
+    def __eq__(self, other):
+        return isinstance(other, Nothing)
+
+    def __repr__(self):
+        return self.__class__.__name__
 
     def get(self):
         return None
@@ -187,7 +193,7 @@ def maybe(pred):
             return Just(x)
 
         else:
-            return Nothing(x)
+            return Nothing()
 
     return maybe_unit
 

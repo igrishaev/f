@@ -8,8 +8,8 @@ __all__ = (
     'pcall_wraps',
     'achain',
     'ichain',
-    'thread_first',
-    'thread_last',
+    'arr1',
+    'arr2',
     'comp',
     'every_pred',
     'transduce',
@@ -77,7 +77,7 @@ def ichain(obj, *items):
     return reduce(get_item, items, obj)
 
 
-def thread_first(value, *forms):
+def arr1(value, *forms):
     """
     Clojure's first threading macro implementation.
 
@@ -113,7 +113,7 @@ def thread_first(value, *forms):
     return reduce(reducer, forms, value)
 
 
-def thread_last(value, *forms):
+def arr2(value, *forms):
     """
     Clojure's second threading macro implementation.
 
@@ -152,7 +152,7 @@ def comp(*funcs):
     >>> comp(f, g, h)(x) <==> h(g(f(x)))
     """
     def composed(value):
-        return thread_first(value, *funcs)
+        return arr1(value, *funcs)
 
     names = (func.__name__ for func in funcs)
     composed.__name__ = "composed(%s)" % ", ".join(names)

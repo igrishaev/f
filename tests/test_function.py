@@ -104,8 +104,8 @@ def test_ichain_missing():
     assert f.ichain(data, 'foo', 'bar', 999, None) is None
 
 
-def test_thread_first():
-    assert "__" == f.thread_first(
+def test_arr1():
+    assert "__" == f.arr1(
         -42,
         (plus, 2),
         abs,
@@ -114,8 +114,8 @@ def test_thread_first():
     )
 
 
-def test_thread_last():
-    result = f.thread_last(
+def test_arr2():
+    result = f.arr2(
         -2,
         abs,
         (plus, 2),
