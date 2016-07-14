@@ -224,3 +224,10 @@ def test_complex():
     assert f.L[1, 2, 3][:-1].map(str) == f.L["1", "2"]
 
     assert set(f.D(bar=2, foo=1)) == set((("foo", 1), ("bar", 2)))
+
+
+def test_repr():
+    assert "List[1, 2, 3]" == repr(f.L[1, 2, 3])
+    assert "Tuple(1, 2, 3)" == repr(f.T[1, 2, 3])
+    assert "Dict{1: 2}" == repr(f.D[1: 2])
+    assert "Set{1}" == repr(f.S[1])

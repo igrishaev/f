@@ -98,7 +98,7 @@ class SeqMixin(object):
     def __repr__(self):
         """
         Just like a parent __repr__, but with a leading prefix:
-        >>> List[1, 2, 3], Dict{1: 2, 3: 4}
+        >>> List[1, 2, 3], Dict{1: 2, 3: 4}, etc
         """
         old_repr = super(SeqMixin, self).__repr__()
         return "%s%s" % (self.__class__.__name__, old_repr)
@@ -245,7 +245,10 @@ class Tuple(SeqMixin, LTSmixin, LTmixin, tuple):
 
 
 class Set(SeqMixin, LTSmixin, set):
-    pass
+
+    def __repr__(self):
+        old_repr = set.__repr__(self)
+        return "Set{%s}" % old_repr[5:-2]
 
 
 class DictMeta(type):

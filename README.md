@@ -238,23 +238,61 @@ f.D[1: 2, 2: 3]
 ### Additional methods such as .map, .filter, .foreach, .sum, etc:
 
 ```python
-
 l1 = f.L[1, 2, 3]
-assert l1.map(str).join("-") == "1-2-3"
+l1.map(str).join("-")
+>>> "1-2-3"
+
+result = []
+
+def collect(x, delta=0):
+    result.append(x + delta)
+
+l1.foreach(collect, delta=1)
+result == [2, 3, 4]
+>>> True
 ```
 
-### Cevery method returns a new collection of this type:
+See the source code for more methods.
 
-  todo
+### Every method returns a new collection of this type:
+
+```python
+l1.filter(f.p_even)
+>>> List[2]
+
+l1.group(2)
+>>> List[List[1, 2], List[3]]
+
+# filtering a dict:
+f.D[1: 1, 2: 2, 0: 2].filter(lambda (k, v): k + v == 2)
+>>> Dict{0: 2, 1: 1}
+```
 
 ### Easy adding two collection of different types
 
-  todo
+```python
+
+# merging dicts
+f.D(a=1, b=2, c=3) + {"d": 4, "e": 5, "f": 5}
+>>> Dict{'a': 1, 'c': 3, 'b': 2, 'e': 5, 'd': 4, 'f': 5}
+
+f.S[1, 2, 3] + ["a", 1, "b", 3, "c"]
+>>> Set(['a', 1, 2, 3, 'c', 'b'])
+
+# addeing list with tuple
+f.L[1, 2, 3] + (4, )
+List[1, 2, 3, 4]
+```
 
 ### Quick turning to another collection
 
-  todo
+```python
+f.L["a", 1, "b", 2].group(2).D()
+>>> Dict{"a": 1, "b": 2}
 
+f.L[1, 2, 3, 3, 2, 1].S().T()
+>>> Tuple[1, 2, 3]
+```
 
 ## Monads
 
