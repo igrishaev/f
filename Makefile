@@ -7,3 +7,9 @@ pep:
 
 clean:
 	find . -name "*.pyc" -delete
+
+register:
+	python setup.py register -r pypi
+
+upload:
+	python setup.py sdist upload -r pypi
