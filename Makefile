@@ -16,3 +16,9 @@ register:
 
 upload:
 	python setup.py bdist_wheel --universal upload -r pypi
+
+docker-build:
+	docker build -t f:tests .
+
+docker-run:
+	docker run -it --rm f:tests bash
