@@ -21,4 +21,4 @@ docker-build:
 	docker build -t f:tests .
 
 docker-run:
-	docker run -it --rm f:tests bash
+	docker run -it --rm -p 8080:8080 -v ~/fp:/app f:tests bash
